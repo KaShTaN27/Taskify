@@ -4,6 +4,9 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.example.taskify.controller.form.AssignTaskForm;
+import com.example.taskify.controller.form.CreateNewUserForm;
+import com.example.taskify.controller.form.RegistrateOrganizationForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Role;
@@ -35,9 +38,9 @@ public class UserController {
     private final EmailSenderService senderService;
 
     @GetMapping("/users")
-    public String getUsers() {
-        return  "<h2>Users</h2>";}//ResponseEntity.ok().body(userService.getUsers());
-
+    public ResponseEntity<List<AppUser>> getUsers() {
+        return ResponseEntity.ok().body(userService.getUsers());
+    }
 
     @GetMapping("/organizations")
     public ResponseEntity<List<Organization>> getOrganizations() {
@@ -51,33 +54,34 @@ public class UserController {
 
 
     @PostMapping("/user/create")
-    public void createNewUser(@RequestBody CreateNewUserForm form) {
+    public ResponseEntity<?> createNewUser(@RequestBody CreateNewUserForm form) {
         userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
         userService.addRoleToUser(form.getEmail(), "ROLE_USER");
         userService.addUserToOrganization(form.getOrganization(), form.getEmail());
+        return ResponseEntity.ok("New user created!");
     }
 
     @PostMapping("/signup")
-    public String registrateNewOrganization(@RequestBody RegistrateOrganizationForm form) {
+    public ResponseEntity<?> registrateNewOrganization(@RequestBody RegistrateOrganizationForm form) {
         userService.saveOrganization(new Organization(form.getName(), form.getPhoneNumber(), form.getAddress()));
         userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
         userService.addAdminToOrganization(form.getName(), form.getEmail());
-        return "<h2>Registered!</h2>";
+        return ResponseEntity.ok("New organization registered!");
     }
 
     @PostMapping("/task/add")
-    public String addTaskToUsers(@RequestBody AssignTaskForm form) {
+    public ResponseEntity<?> addTaskToUsers(@RequestBody AssignTaskForm form) {
         userService.saveTask(new Task(form.getTitle(),
                                       form.getDescription(),
                                       form.getDeadline(),
                                       form.getIsDone()));
         userService.addTaskToUsers(form.getEmails(), form.getTitle());
         form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
-        return "Task added!";
+        return ResponseEntity.ok("Task added to users!");
     }
 
     @GetMapping("/token/refresh")
-    public String refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public ResponseEntity<?> refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authorizationHeader = request.getHeader(AUTHORIZATION);
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             try {
@@ -109,6 +113,6 @@ public class UserController {
         } else {
             throw new RuntimeException("Refresh token is missing");
         }
-        return "<h2>Token refreshed</h2>";
+        return ResponseEntity.ok("Token refreshed!");
     }
 }

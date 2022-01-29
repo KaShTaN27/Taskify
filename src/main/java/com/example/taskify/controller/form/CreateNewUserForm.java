@@ -1,4 +1,4 @@
-package com.example.taskify.controller;
+package com.example.taskify.controller.form;
 
 import lombok.Data;
 
