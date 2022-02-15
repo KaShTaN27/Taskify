@@ -12,6 +12,8 @@ import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Role;
 import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
+import com.example.taskify.service.OrganizationService;
+import com.example.taskify.service.TaskService;
 import com.example.taskify.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +35,11 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 @RequestMapping("/api")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
+    private final TaskService taskService;
+    private final OrganizationService organizationService;
+
     @Autowired
     private final EmailSenderService senderService;
 
@@ -49,13 +55,13 @@ public class UserController {
 
     @GetMapping("/organizations")
     public ResponseEntity<List<Organization>> getOrganizations() {
-        return ResponseEntity.ok().body(userService.getOrganizations());
+        return ResponseEntity.ok().body(organizationService.getOrganizations());
     }
 
     @GetMapping("/organization/members")
     public ResponseEntity<List<String>> getMembersOfOrganization(String name) {
         List<String> emails = new ArrayList<>();
-        userService.getOrganization(name).getAppUsers().forEach(user -> emails.add(user.getEmail()));
+        organizationService.getOrganization(name).getAppUsers().forEach(user -> emails.add(user.getEmail()));
         return ResponseEntity.ok().body(emails);
     }
 
@@ -69,28 +75,28 @@ public class UserController {
     public ResponseEntity<?> createNewUser(@RequestBody CreateNewUserForm form) {
         userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
         userService.addRoleToUser(form.getEmail(), "ROLE_USER");
-        userService.addUserToOrganization(form.getOrganization(), form.getEmail());
+        organizationService.addUserToOrganization(form.getOrganization(), form.getEmail());
         return ResponseEntity.ok("New user created!");
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> registrateNewOrganization(@RequestBody RegistrateOrganizationForm form) {
         Organization organization = new Organization(form.getName(), form.getPhoneNumber(), form.getAddress());
-        userService.saveOrganization(organization);
+        organizationService.saveOrganization(organization);
         AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
         user.setOrganizationName(organization.getName());
         userService.saveUser(user);
-        userService.addAdminToOrganization(form.getName(), form.getEmail());
+        organizationService.addAdminToOrganization(form.getName(), form.getEmail());
         return ResponseEntity.ok("New organization registered!");
     }
 
     @PostMapping("/task/add")
     public ResponseEntity<?> addTaskToUsers(@RequestBody AssignTaskForm form) {
-        userService.saveTask(new Task(form.getTitle(),
+        taskService.saveTask(new Task(form.getTitle(),
                                       form.getDescription(),
                                       form.getDeadline(),
                                       form.getIsDone()));
-        userService.addTaskToUsers(form.getEmails(), form.getTitle());
+        taskService.addTaskToUsers(form.getEmails(), form.getTitle());
         form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
         return ResponseEntity.ok("Task added to users!");
     }
