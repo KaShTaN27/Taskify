@@ -12,7 +12,7 @@ export const Registration = () => {
     const [password, setPassword] = useState('');
 
     const handleRegistration = (props) => {
-        axios.post(BASE_URL + "/api/signup", {
+        axios.post(BASE_URL + "/api/auth/signup", {
             name: organizationName,
             phoneNumber: phoneNumber,
             address: address,

@@ -14,7 +14,7 @@ export const Tasks = () => {
     const [usersNames, setUsersNames] = useState([]);
 
     const handleAddTask = () => {
-        axios.post(BASE_URL + "/api/task/add", {
+        axios.post(BASE_URL + "/api/tasks/add", {
             title: title,
             description: description,
             deadline: deadline,
@@ -35,7 +35,7 @@ export const Tasks = () => {
     useEffect(() => {
         async function fetchTasks() {
             const email = getEmail();
-            await axios.get(`${BASE_URL}/api/user/tasks?email=${email}`, {
+            await axios.get(`${BASE_URL}/api/tasks?email=${email}`, {
                 headers: {
                     'Authorization': 'Bearer ' + getAccessToken()
                 }
@@ -50,7 +50,7 @@ export const Tasks = () => {
         }
 
         fetchTasks();
-        axios.get(`${BASE_URL}/api/organization/members?name=${getOrganizationName()}`, {
+        axios.get(`${BASE_URL}/api/user/organization/members?name=${getOrganizationName()}`, {
             headers: {
                 'Authorization': 'Bearer ' + getAccessToken()
             }
