@@ -94,15 +94,21 @@ public class UserServiceImp implements UserService , UserDetailsService {
     }
 
     @Override
-    public List<AppUser> getUsers() {
-        log.info("Fetching all users");
-        return appUserRepository.findAll();
+    public List<AppUser> getUsers(String orgName) {
+        log.info("Fetching all users from {}", orgName);
+        return appUserRepository.findAllByOrganizationName(orgName);
     }
 
     @Override
     public AppUser getUser(String email) {
         log.info("Fetching user {}", email);
         return appUserRepository.findByEmail(email);
+    }
+
+    @Override
+    public Organization getOrganization(String name) {
+        log.info("Organization {} found in database", name);
+        return organizationRepository.findByName(name);
     }
 
     @Override

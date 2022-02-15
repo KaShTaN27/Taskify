@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import static javax.persistence.FetchType.EAGER;
+import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.AUTO;
 
 @Entity
@@ -27,6 +28,7 @@ public class AppUser {
     private Collection<Role> roles = new ArrayList<>();
     @ManyToMany(fetch = EAGER)
     private Collection<Task> tasks = new ArrayList<>();
+    private String organizationName;
 
     public AppUser(String name, String lastName, String email, String password) {
         this.name = name;

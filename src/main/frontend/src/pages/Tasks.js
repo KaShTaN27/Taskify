@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {BASE_URL, getAccessToken, getEmail} from "../utils/Common";
+import {BASE_URL, getAccessToken, getEmail, getOrganizationName} from "../utils/Common";
 import {MultiSelectComponent} from "@syncfusion/ej2-react-dropdowns"
 
 export const Tasks = () => {
@@ -11,11 +11,11 @@ export const Tasks = () => {
     const [emails, setEmails] = useState([]);
     const date = new Date()
     const currentDate = `${date.toISOString().substring(0, 10)}`
-    const users = ['Daniil', 'Andrew', 'Maksim']
+    const [usersNames, setUsersNames] = useState([]);
 
     const handleAddTask = () => {
         axios.post(BASE_URL + "/api/task/add", {
-            title:  title,
+            title: title,
             description: description,
             deadline: deadline,
             isDone: false,
@@ -39,18 +39,25 @@ export const Tasks = () => {
                 headers: {
                     'Authorization': 'Bearer ' + getAccessToken()
                 }
+            }).then(response => {
+                console.log('Tasks response >>', response)
+                setTasks(response.data)
+
+            }).catch(error => {
+                console.log(`${BASE_URL}/api/user/tasks?email=${email}`)
+                console.log('error >>', error)
             })
-                .then(response => {
-                    console.log('Tasks response >>', response)
-                    setTasks(response.data)
-                })
-                .catch(error => {
-                    console.log(`${BASE_URL}/api/user/tasks?email=${email}`)
-                    console.log('error >>', error)
-                })
         }
 
         fetchTasks();
+        axios.get(`${BASE_URL}/api/organization/members?name=${getOrganizationName()}`, {
+            headers: {
+                'Authorization': 'Bearer ' + getAccessToken()
+            }
+        }).then(response => {
+            console.log('members >> ', response.data)
+            setUsersNames(response.data)
+        });
     }, []);
 
     return (
@@ -91,21 +98,9 @@ export const Tasks = () => {
                 </div>
                 <div className="row">
                     <div className="col-lg-6">
-                        {/*<div className="mb-3">*/}
-                        {/*    <input*/}
-                        {/*        type="text"*/}
-                        {/*        className="form-control"*/}
-                        {/*        value={emails.toString()}*/}
-                        {/*        placeholder="Emails"*/}
-                        {/*        onChange={e => {*/}
-                        {/*            console.log(emails)*/}
-                        {/*            setEmails(e.target.value.split("; "))*/}
-                        {/*        }}*/}
-                        {/*    />*/}
-                        {/*</div>*/}
                         <MultiSelectComponent
                             placeholder="Emails"
-                            dataSource={users}
+                            dataSource={usersNames}
                             showSelectAll={true}
                             change={e => setEmails(e.value)}
                         >
@@ -129,9 +124,9 @@ export const Tasks = () => {
                         </li>
                     )))
                     : (<li className="list-group-item note">
-                            <div align="center">
-                                <strong>You don't have any tasks right now.</strong>
-                            </div>
+                        <div align="center">
+                            <strong>You don't have any tasks right now.</strong>
+                        </div>
                     </li>)}
             </ul>
         </div>

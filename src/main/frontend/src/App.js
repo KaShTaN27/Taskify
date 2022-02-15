@@ -7,14 +7,15 @@ import {Users} from "./pages/Users";
 import {
     BASE_URL,
     getAccessToken,
-    getEmail,
+    getEmail, getLastName, getName,
     getRefreshToken,
-    removeEmail,
+    removeEmail, removePersonalData,
     removeTokens,
     saveTokens
 } from "./utils/Common";
 import jwtDecode from "jwt-decode";
 import axios from "axios";
+import {Profile} from "./pages/Profile";
 
 function App() {
     const [showInterface, setShowInterface] = useState(false);
@@ -48,6 +49,7 @@ function App() {
                     }).then(response => {
                         console.log(response)
                         saveTokens(response.data.access_token, response.data.refresh_token)
+                        window.location.reload()
                     });
                 } else {
                     console.log('Logging out...')
@@ -62,6 +64,7 @@ function App() {
     const handleLogout = () => {
         removeTokens();
         removeEmail();
+        removePersonalData();
         setShowInterface(false);
         setCurrentUser(undefined);
         // props.history.push('/login');
@@ -90,7 +93,7 @@ function App() {
                 {currentUser ? (
                     <div className="navbar-nav ms-auto me-3">
                         <li className="navbar-item">
-                            <Link className="nav-link" to="/login">{getEmail()}</Link>
+                            <Link className="nav-link" to="/profile">{getName()} {getLastName()}</Link>
                         </li>
                         <li className="navbar-item">
                             <a href="/login" className="nav-link" onClick={handleLogout}>
@@ -118,6 +121,7 @@ function App() {
                             <Route path="/login" element={<Login />}/>
                             <Route path="/tasks" element={<Tasks />}/>
                             <Route path="/users" element={<Users />}/>
+                            <Route path="/profile" element={<Profile />}/>
                         </Routes>
                     </div>
                 {/*<AuthVerify />*/}

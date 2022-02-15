@@ -37,14 +37,26 @@ public class UserController {
     @Autowired
     private final EmailSenderService senderService;
 
+    @GetMapping("/user/info")
+    public ResponseEntity<AppUser> getUser(String email) {
+        return ResponseEntity.ok().body(userService.getUser(email));
+    }
+
     @GetMapping("/users")
-    public ResponseEntity<List<AppUser>> getUsers() {
-        return ResponseEntity.ok().body(userService.getUsers());
+    public ResponseEntity<List<AppUser>> getUsers(String orgName) {
+        return ResponseEntity.ok().body(userService.getUsers(orgName));
     }
 
     @GetMapping("/organizations")
     public ResponseEntity<List<Organization>> getOrganizations() {
         return ResponseEntity.ok().body(userService.getOrganizations());
+    }
+
+    @GetMapping("/organization/members")
+    public ResponseEntity<List<String>> getMembersOfOrganization(String name) {
+        List<String> emails = new ArrayList<>();
+        userService.getOrganization(name).getAppUsers().forEach(user -> emails.add(user.getEmail()));
+        return ResponseEntity.ok().body(emails);
     }
 
     @GetMapping("/user/tasks")
@@ -63,8 +75,11 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registrateNewOrganization(@RequestBody RegistrateOrganizationForm form) {
-        userService.saveOrganization(new Organization(form.getName(), form.getPhoneNumber(), form.getAddress()));
-        userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
+        Organization organization = new Organization(form.getName(), form.getPhoneNumber(), form.getAddress());
+        userService.saveOrganization(organization);
+        AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
+        user.setOrganizationName(organization.getName());
+        userService.saveUser(user);
         userService.addAdminToOrganization(form.getName(), form.getEmail());
         return ResponseEntity.ok("New organization registered!");
     }

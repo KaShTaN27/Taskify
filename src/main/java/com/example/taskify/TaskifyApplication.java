@@ -32,13 +32,18 @@ public class TaskifyApplication {
 		return args -> {
 			userService.saveRole(new Role(null, "ROLE_ADMIN"));
 			userService.saveRole(new Role(null, "ROLE_USER"));
-			userService.saveOrganization(new Organization(
-							"Viva",
-							"632233",
-							"Generalov st."));
-			userService.saveUser(new AppUser("Boris","Johnson","korzundanik@gmail.com","123456"));
+			Organization organization = new Organization(
+					"Viva",
+					"632233",
+					"Generalov st.");
+			userService.saveOrganization(organization);
+			AppUser user = new AppUser("Boris","Johnson","korzundanik@gmail.com","123456");
+			user.setOrganizationName(organization.getName());
+			userService.saveUser(user);
 			userService.addAdminToOrganization("Viva", "korzundanik@gmail.com");
-			userService.saveUser(new AppUser("Lena","Kerson","Klerson@gmail.com","123456"));
+			AppUser user1 = new AppUser("Lena","Kerson","Klerson@gmail.com","123456");
+			user1.setOrganizationName(organization.getName());
+			userService.saveUser(user1);
 			userService.addRoleToUser("Klerson@gmail.com", "ROLE_USER");
 			userService.addUserToOrganization("Viva", "Klerson@gmail.com");
 			userService.saveTask(new Task(null, "Work", "smthng about work", "2022-01-13", false));

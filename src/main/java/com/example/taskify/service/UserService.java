@@ -18,7 +18,8 @@ public interface UserService {
     void addTaskToUsers(ArrayList<String> emails, String title);
     void addUserToOrganization(String organizationName, String email);
     void addRoleToUser(String email, String roleName);
-    List<AppUser> getUsers();
+    List<AppUser> getUsers(String orgName);
     AppUser getUser(String email);
+    Organization getOrganization(String name);
     List<Organization> getOrganizations();
 }

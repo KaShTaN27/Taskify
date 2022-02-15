@@ -37,8 +37,6 @@ public class CustomAuthenticationFilter extends UsernamePasswordAuthenticationFi
         String email = request.getParameter("username");
         String password = request.getParameter("password");
         log.info("Email: {}, Password: {}", email, password);
-        if (password.length() < 6)
-            throw new RuntimeException("Password length is less than 6");
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(email, password);
         return authenticationManager.authenticate(authenticationToken);
     }
