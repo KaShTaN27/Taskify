@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,14 +31,51 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     public AppUser saveUser(AppUser user) {
-        log.info("Saving new user with email {}", user.getEmail());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return appUserRepository.save(user);
+        if (appUserRepository.findByEmail(user.getEmail()) == null) {
+            log.info("Saving new user with email {}", user.getEmail());
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+            return appUserRepository.save(user);
+        } else {
+            log.error("User with email {} already exists in database", user.getEmail());
+            return user;
+        }
     }
 
     public AppUser getUser(String email) {
-        log.info("Fetching user {}", email);
-        return appUserRepository.findByEmail(email);
+        AppUser user = appUserRepository.findByEmail(email);
+        if (user != null) {
+            log.info("Fetching user with email: {}", email);
+            return user;
+        } else {
+            log.error("There is no such user with email: {}", email);
+            return new AppUser();
+        }
+    }
+
+    public AppUser updateUserById(Long id, String firstName,
+                                  String lastName, String email, String password) {
+        Optional<AppUser> optionalAppUser = appUserRepository.findById(id);
+        if (optionalAppUser.isPresent()) {
+            AppUser user = optionalAppUser.get();
+            user.setName(firstName);
+            user.setLastName(lastName);
+            user.setEmail(email);
+            user.setPassword(passwordEncoder.encode(password));
+            log.info("User with id {} updated successfully", id);
+            return appUserRepository.save(user);
+        } else {
+            log.error("There is no such user with id {} in database", id);
+            return new AppUser();
+        }
+    }
+
+    public void deleteUser(Long id) {
+        if (appUserRepository.findById(id).isPresent()) {
+            log.info("User with id {} deleted successfully", id);
+            appUserRepository.deleteById(id);
+        } else {
+            log.error("There is no such user with id {} in database", id);
+        }
     }
 
     public List<AppUser> getUsers(String orgName) {
