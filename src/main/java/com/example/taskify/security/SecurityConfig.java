@@ -42,15 +42,18 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        CustomAuthenticationFilter authenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+        authenticationFilter.setFilterProcessesUrl("/login"); // "/auth/login"
+
         http.cors().and().csrf().disable();
         http.sessionManagement().sessionCreationPolicy(STATELESS);
-        http.authorizeRequests().antMatchers("/login", "/api/organizations", "/api/signup", "/api/token/refresh").permitAll();
+        http.authorizeRequests().antMatchers("/auth/login", "/api/organizations", "/api/signup", "/api/token/refresh").permitAll();
         http.authorizeRequests().antMatchers("/api/user/create").hasAnyAuthority("ROLE_ADMIN");
         http.authorizeRequests().antMatchers("/api/users", "/api/task/add", "/api/user/tasks", "/api/user/info", "/api/organization/members").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN");
         http.authorizeRequests().anyRequest().authenticated();
         http.formLogin().defaultSuccessUrl("/api/organizations").permitAll();
         http.logout().permitAll();
-        http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
+        http.addFilter(authenticationFilter);
         http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
