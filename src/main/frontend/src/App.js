@@ -42,7 +42,7 @@ function App() {
                 if (decodedRefreshToken.exp * 1000 > Date.now()) {
                     console.log('We need refresh')
                     // refresh
-                    axios.get(BASE_URL + "/api/token/refresh", {
+                    axios.get(BASE_URL + "/api/auth/refresh", {
                         headers: {
                             'Authorization': 'Bearer ' + getRefreshToken()
                         }
