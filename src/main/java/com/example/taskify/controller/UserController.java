@@ -2,6 +2,7 @@ package com.example.taskify.controller;
 
 import com.example.taskify.controller.form.CreateNewUserForm;
 import com.example.taskify.domain.AppUser;
+import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final OrganizationService organizationService;
 
     @GetMapping("/info")
     public ResponseEntity<AppUser> getUser(String email) {
@@ -39,7 +41,7 @@ public class UserController {
     @GetMapping("/organization/members")
     public ResponseEntity<List<String>> getMembersOfOrganization(String name) {
         List<String> emails = new ArrayList<>();
-        userService.getOrganization(name).getAppUsers().forEach(user -> emails.add(user.getEmail()));
+        organizationService.getOrganization(name).getAppUsers().forEach(user -> emails.add(user.getEmail()));
         return ResponseEntity.ok().body(emails);
     }
 }

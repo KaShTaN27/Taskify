@@ -8,6 +8,7 @@ import com.example.taskify.controller.form.RegistrateOrganizationForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Role;
+import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -32,15 +33,16 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 public class AuthController {
 
     private final UserService userService;
+    private final OrganizationService organizationService;
 
     @PostMapping("/signup")
     public ResponseEntity<?> registrateNewOrganization(@RequestBody RegistrateOrganizationForm form) {
         Organization organization = new Organization(form.getName(), form.getPhoneNumber(), form.getAddress());
-        userService.saveOrganization(organization);
+        organizationService.saveOrganization(organization);
         AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
         user.setOrganizationName(organization.getName());
         userService.saveUser(user);
-        userService.addAdminToOrganization(form.getName(), form.getEmail());
+        organizationService.addAdminToOrganization(form.getName(), form.getEmail());
         return ResponseEntity.ok("New organization registered!");
     }
 

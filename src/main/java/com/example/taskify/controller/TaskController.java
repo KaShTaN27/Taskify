@@ -3,6 +3,7 @@ package com.example.taskify.controller;
 import com.example.taskify.controller.form.AssignTaskForm;
 import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
+import com.example.taskify.service.TaskService;
 import com.example.taskify.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ public class TaskController {
 
     private final UserService userService;
     private final EmailSenderService senderService;
+    private final TaskService taskService;
 
     @GetMapping
     public ResponseEntity<Collection<Task>> getTasks(String email) {
@@ -25,11 +27,11 @@ public class TaskController {
 
     @PostMapping("/add")
     public ResponseEntity<?> addTaskToUsers(@RequestBody AssignTaskForm form) {
-        userService.saveTask(new Task(form.getTitle(),
+        taskService.saveTask(new Task(form.getTitle(),
                 form.getDescription(),
                 form.getDeadline(),
                 form.getIsDone()));
-        userService.addTaskToUsers(form.getEmails(), form.getTitle());
+        taskService.addTaskToUsers(form.getEmails(), form.getTitle());
         form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
         return ResponseEntity.ok("Task added to users!");
     }
