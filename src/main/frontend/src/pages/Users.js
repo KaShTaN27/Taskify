@@ -38,7 +38,7 @@ export const Users = () => {
 
     useEffect(() => {
         async function fetchUsers() {
-            await axios.get(`${BASE_URL}/api/users?orgName=${getOrganizationName()}`, {
+            await axios.get(`${BASE_URL}/api/user/all?orgName=${getOrganizationName()}`, {
                 headers: {
                     'Authorization': 'Bearer ' + getAccessToken()
                 }
