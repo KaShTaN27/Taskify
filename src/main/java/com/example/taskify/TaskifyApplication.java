@@ -4,6 +4,8 @@ import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Role;
 import com.example.taskify.domain.Task;
+import com.example.taskify.service.OrganizationService;
+import com.example.taskify.service.TaskService;
 import com.example.taskify.service.UserService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -28,7 +30,9 @@ public class TaskifyApplication {
 	}
 
 	@Bean
-	CommandLineRunner commandLineRunner(UserService userService) {
+	CommandLineRunner commandLineRunner(UserService userService,
+										TaskService taskService,
+										OrganizationService organizationService) {
 		return args -> {
 			userService.saveRole(new Role(null, "ROLE_ADMIN"));
 			userService.saveRole(new Role(null, "ROLE_USER"));
@@ -36,18 +40,18 @@ public class TaskifyApplication {
 					"Viva",
 					"632233",
 					"Generalov st.");
-			userService.saveOrganization(organization);
+			organizationService.saveOrganization(organization);
 			AppUser user = new AppUser("Boris","Johnson","korzundanik@gmail.com","123456");
 			user.setOrganizationName(organization.getName());
 			userService.saveUser(user);
-			userService.addAdminToOrganization("Viva", "korzundanik@gmail.com");
+			organizationService.addAdminToOrganization("Viva", "korzundanik@gmail.com");
 			AppUser user1 = new AppUser("Lena","Kerson","Klerson@gmail.com","123456");
 			user1.setOrganizationName(organization.getName());
 			userService.saveUser(user1);
 			userService.addRoleToUser("Klerson@gmail.com", "ROLE_USER");
-			userService.addUserToOrganization("Viva", "Klerson@gmail.com");
-			userService.saveTask(new Task(null, "Work", "smthng about work", "2022-01-13", false));
-			userService.addTaskToUsers(new ArrayList<>(Arrays.asList("korzundanik@gmail.com", "Klerson@gmail.com")), "Work");
+			organizationService.addUserToOrganization("Viva", "Klerson@gmail.com");
+			taskService.saveTask(new Task(null, "Work", "smthng about work", "2022-01-13", false));
+			taskService.addTaskToUsers(new ArrayList<>(Arrays.asList("korzundanik@gmail.com", "Klerson@gmail.com")), "Work");
 		};
 	}
 }

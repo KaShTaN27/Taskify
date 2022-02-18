@@ -14,6 +14,7 @@ import java.util.List;
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
     @GetMapping("/info")
@@ -25,9 +26,10 @@ public class UserController {
     public ResponseEntity<?> createNewUser(@RequestBody CreateNewUserForm form) {
         userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
         userService.addRoleToUser(form.getEmail(), "ROLE_USER");
-        userService.addUserToOrganization(form.getOrganization(), form.getEmail());
+        organizationService.addUserToOrganization(form.getOrganization(), form.getEmail());
         return ResponseEntity.ok("New user created!");
     }
+
 
     @GetMapping("/all")
     public ResponseEntity<List<AppUser>> getUsers(String orgName) {
