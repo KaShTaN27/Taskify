@@ -1,12 +1,19 @@
 package com.example.taskify.security;
 
+import com.example.taskify.service.UserService;
 import io.jsonwebtoken.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
     @Value("${jwt.secret}")
@@ -14,6 +21,8 @@ public class JwtTokenProvider {
 
     @Value("${jwt.expirationTime}")
     private int expirationTime;
+
+    private final UserService userService;
 
     public String generateToken(String username, String role) {
         Claims claims = Jwts.claims().setSubject(username);
@@ -35,5 +44,18 @@ public class JwtTokenProvider {
         } catch (JwtException e) {
             throw new RuntimeException("Expired JWT token");
         }
+    }
+
+    public Authentication getAuthentication(String token) {
+        UserDetails userDetails = userService.loadUserByUsername(getUsername(token));
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
+    public String getUsername(String token) {
+        return Jwts.parser().setSigningKey(secretWord).parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public String resolveToken(HttpServletRequest request) {
+        return request.getHeader("Authorization");
     }
 }
