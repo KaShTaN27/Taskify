@@ -1,11 +1,16 @@
 package com.example.taskify.service;
 
+import com.example.taskify.controller.form.CreateNewUserForm;
+import com.example.taskify.controller.form.LoginForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Role;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.RoleRepository;
+import com.example.taskify.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,10 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +30,12 @@ public class UserService implements UserDetailsService {
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
+
+    private final OrganizationService organizationService;
+
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider tokenProvider;
 
     public AppUser saveUser(AppUser user) {
         if (appUserRepository.findByEmail(user.getEmail()) == null) {
@@ -76,6 +83,24 @@ public class UserService implements UserDetailsService {
         } else {
             log.error("There is no such user with id {} in database", id);
         }
+    }
+
+    public Map<Object, Object> authenticateUser(LoginForm form) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(form.getEmail(), form.getPassword()));
+        AppUser user = getUser(form.getEmail());
+        String token = tokenProvider.generateToken(form.getEmail(), user.getRoles());
+        Map<Object, Object> response = new HashMap<>();
+        response.put("email", form.getEmail());
+        response.put("token", token);
+        return response;
+    }
+
+    public void createUser(CreateNewUserForm form) {
+        AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
+        user.setOrganizationName(form.getOrganization());
+        saveUser(user);
+        addRoleToUser(form.getEmail(), "ROLE_USER");
+        organizationService.addUserToOrganization(form.getOrganization(), user.getEmail());
     }
 
     public List<AppUser> getUsers(String orgName) {

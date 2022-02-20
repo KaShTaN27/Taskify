@@ -29,9 +29,7 @@ public class UserController {
     @PostMapping("/create")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createNewUser(@RequestBody CreateNewUserForm form) {
-        userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
-        userService.addRoleToUser(form.getEmail(), "ROLE_USER");
-        organizationService.addUserToOrganization(form.getOrganization(), form.getEmail());
+        userService.createUser(form);
         return ResponseEntity.ok("New user created!");
     }
 

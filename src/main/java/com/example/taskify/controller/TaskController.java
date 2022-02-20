@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import javax.mail.SendFailedException;
 import java.util.Collection;
 
 @RestController
@@ -30,12 +31,7 @@ public class TaskController {
     @PostMapping("/add")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<?> addTaskToUsers(@RequestBody AssignTaskForm form) {
-        taskService.saveTask(new Task(form.getTitle(),
-                form.getDescription(),
-                form.getDeadline(),
-                form.getIsDone()));
-        taskService.addTaskToUsers(form.getEmails(), form.getTitle());
-        form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
+        taskService.addTaskToUsers(form);
         return ResponseEntity.ok("Task added to users!");
     }
 }

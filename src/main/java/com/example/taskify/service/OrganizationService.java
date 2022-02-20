@@ -1,5 +1,6 @@
 package com.example.taskify.service;
 
+import com.example.taskify.controller.form.RegistrateOrganizationForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.repository.AppUserRepository;
@@ -67,6 +68,15 @@ public class OrganizationService {
         } else {
             log.error("There is no such organization with id {}", id);
         }
+    }
+
+    public void registerOrganization(RegistrateOrganizationForm form) {
+        Organization organization = new Organization(form.getName(), form.getPhoneNumber(), form.getAddress());
+        organizationRepository.save(organization);
+        AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
+        user.setOrganizationName(organization.getName());
+        appUserRepository.save(user);
+        addAdminToOrganization(organization.getName(), user.getName());
     }
 
     public List<Organization> getOrganizations() {

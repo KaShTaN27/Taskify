@@ -1,7 +1,9 @@
 package com.example.taskify.service;
 
+import com.example.taskify.controller.form.AssignTaskForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
+import com.example.taskify.email.EmailSenderService;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Optional;
 
 @Service
@@ -20,6 +21,7 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final AppUserRepository appUserRepository;
+    private final EmailSenderService senderService;
 
     public Task saveTask(Task task) {
         if (taskRepository.findByTitle(task.getTitle()) == null) {
@@ -66,12 +68,14 @@ public class TaskService {
         }
     }
 
-    public void addTaskToUsers(ArrayList<String> emails, String title) {
-        Task task = taskRepository.findByTitle(title);
-        emails.forEach( email -> {
+    public void addTaskToUsers(AssignTaskForm form) {
+        Task task = new Task(form.getTitle(), form.getDescription(), form.getDeadline(), form.getIsDone());
+        saveTask(task);
+        form.getEmails().forEach(email -> {
             AppUser user = appUserRepository.findByEmail(email);
             if (user != null)
                 user.getTasks().add(task);
         });
+        form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
     }
 }
