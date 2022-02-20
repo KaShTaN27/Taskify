@@ -1,5 +1,6 @@
 package com.example.taskify.security;
 
+import com.example.taskify.domain.Role;
 import com.example.taskify.service.UserService;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -10,7 +11,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -24,9 +28,11 @@ public class JwtTokenProvider {
 
     private final UserService userService;
 
-    public String generateToken(String username, String role) {
+    public String generateToken(String username, Collection<Role> roles) {
         Claims claims = Jwts.claims().setSubject(username);
-        claims.put("role", role);
+        List<String> roleNames = new ArrayList<>();
+        roles.forEach(role -> roleNames.add(role.getName()));
+        claims.put("roles", roleNames);
         Date now = new Date();
         Date expiryDate =new Date(now.getTime() + expirationTime);
         return Jwts.builder()
