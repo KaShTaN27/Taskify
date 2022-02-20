@@ -1,7 +1,5 @@
 package com.example.taskify.security;
 
-import com.example.taskify.filter.CustomAuthenticationFilter;
-import com.example.taskify.filter.CustomAuthorizationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +10,6 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -25,6 +22,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
 
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final JwtConfigurer jwtConfigurer;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
@@ -42,16 +40,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements WebM
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable();
-        http.sessionManagement().sessionCreationPolicy(STATELESS);
-        http.authorizeRequests().antMatchers("/login", "/api/organizations", "/api/signup", "/api/token/refresh").permitAll();
-        http.authorizeRequests().antMatchers("/api/user/create").hasAnyAuthority("ROLE_ADMIN");
-        http.authorizeRequests().antMatchers("/api/users", "/api/task/add", "/api/user/tasks", "/api/user/info", "/api/organization/members").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN");
-        http.authorizeRequests().anyRequest().authenticated();
-        http.formLogin().defaultSuccessUrl("/api/organizations").permitAll();
-        http.logout().permitAll();
-        http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
-        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http
+                .cors()
+                .and()
+                .csrf().disable()
+                .sessionManagement().sessionCreationPolicy(STATELESS)
+                .and()
+                .authorizeRequests()
+                .antMatchers("/login", "/api/organizations", "/api/signup", "/api/token/refresh").permitAll()
+                .antMatchers("/api/user/create").hasAnyAuthority("ROLE_ADMIN")
+                .antMatchers("/api/users", "/api/task/add", "/api/user/tasks", "/api/user/info", "/api/organization/members").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .anyRequest().authenticated()
+                .and()
+                .apply(jwtConfigurer);
     }
 
     @Bean
