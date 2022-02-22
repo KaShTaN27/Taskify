@@ -5,18 +5,15 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 @Component
 @RequiredArgsConstructor
@@ -28,17 +25,27 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         String token = tokenProvider.resolveToken(request);
         try {
-            if (token != null && tokenProvider.validateToken(token)) {
-                Authentication authentication = tokenProvider.getAuthentication(token);
-                if (authentication != null) {
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            }
+            validateTokenAndSetAuthentication(token);
         } catch (AuthenticationException e) {
-            SecurityContextHolder.clearContext();
-            response.sendError(SC_FORBIDDEN);
-            throw new RuntimeException("JWT token is expired or invalid");
+            cleanContextAndThrowException(response);
         }
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(Authentication authentication) {
+        if (authentication != null)
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    private void validateTokenAndSetAuthentication(String token) {
+        if (token != null && tokenProvider.validateToken(token)) {
+            setAuthentication(tokenProvider.getAuthentication(token));
+        }
+    }
+
+    private void cleanContextAndThrowException(HttpServletResponse response) throws IOException {
+        SecurityContextHolder.clearContext();
+        response.sendError(SC_FORBIDDEN);
+        throw new RuntimeException("JWT token is expired or invalid");
     }
 }
