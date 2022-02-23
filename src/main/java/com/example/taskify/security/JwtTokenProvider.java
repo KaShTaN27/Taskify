@@ -16,6 +16,8 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
+import static io.jsonwebtoken.SignatureAlgorithm.*;
+
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -29,18 +31,26 @@ public class JwtTokenProvider {
     private final UserService userService;
 
     public String generateToken(String username, Collection<Role> roles) {
+        return compactToken(setClaims(username, roles));
+    }
+
+    private String compactToken(Claims claims) {
+        Date now = new Date();
+        Date expireDate = new Date(now.getTime() + expirationTime);
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expireDate)
+                .signWith(HS256, secretWord)
+                .compact();
+    }
+
+    private Claims setClaims(String username, Collection<Role> roles) {
         Claims claims = Jwts.claims().setSubject(username);
         List<String> roleNames = new ArrayList<>();
         roles.forEach(role -> roleNames.add(role.getName()));
         claims.put("roles", roleNames);
-        Date now = new Date();
-        Date expiryDate =new Date(now.getTime() + expirationTime);
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(SignatureAlgorithm.HS256, secretWord)
-                .compact();
+        return claims;
     }
 
     public boolean validateToken(String token) {
