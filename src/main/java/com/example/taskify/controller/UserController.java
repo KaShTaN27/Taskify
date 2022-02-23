@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +23,8 @@ public class UserController {
 
     @GetMapping("/info")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity<AppUser> getUser(String email) {
-        return ResponseEntity.ok().body(userService.getUser(email));
+    public ResponseEntity<AppUser> getUser(Principal principal) {
+        return ResponseEntity.ok().body(userService.getUser(principal.getName()));
     }
 
     @PostMapping("/create")

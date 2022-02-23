@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.Collection;
 
 @RestController
@@ -23,8 +24,8 @@ public class TaskController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity<Collection<Task>> getTasks(String email) {
-        return ResponseEntity.ok().body(userService.getUser(email).getTasks());
+    public ResponseEntity<Collection<Task>> getTasks(Principal principal) {
+        return ResponseEntity.ok().body(userService.getUser(principal.getName()).getTasks());
     }
 
     @PostMapping("/add")
