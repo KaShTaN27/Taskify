@@ -44,6 +44,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private void cleanContextAndThrowException(HttpServletResponse response) throws IOException {
+        //TODO: Create exception for authentication
         SecurityContextHolder.clearContext();
         response.sendError(SC_FORBIDDEN);
         throw new RuntimeException("JWT token is expired or invalid");
