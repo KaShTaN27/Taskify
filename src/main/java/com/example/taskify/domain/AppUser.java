@@ -11,7 +11,7 @@ import javax.persistence.ManyToMany;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static javax.persistence.FetchType.EAGER;
+import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
@@ -27,7 +27,7 @@ public class AppUser {
     private String password;
     @ManyToMany
     private Collection<Role> roles = new ArrayList<>();
-    @ManyToMany(fetch = EAGER)
+    @ManyToMany(fetch = LAZY)
     private Collection<Task> tasks = new ArrayList<>();
     private String organizationName;
 
