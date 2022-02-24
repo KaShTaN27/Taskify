@@ -1,5 +1,7 @@
 package com.example.taskify.service;
 
+import com.example.taskify.controller.form.CreateNewUserForm;
+import com.example.taskify.controller.form.UserForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Role;
 import com.example.taskify.repository.AppUserRepository;
@@ -52,15 +54,19 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    public AppUser getUserById(Long id)  {
+        Optional<AppUser> optionalUser = appUserRepository.findById(id);
+        return optionalUser.orElseThrow(() -> new RuntimeException("There is no user with such id"));
+    }
+
     public AppUser updateUserById(Long id, String firstName,
-                                  String lastName, String email, String password) {
+                                  String lastName, String email) {
         Optional<AppUser> optionalAppUser = appUserRepository.findById(id);
         if (optionalAppUser.isPresent()) {
             AppUser user = optionalAppUser.get();
             user.setName(firstName);
             user.setLastName(lastName);
             user.setEmail(email);
-            user.setPassword(passwordEncoder.encode(password));
             log.info("User with id {} updated successfully", id);
             return appUserRepository.save(user);
         } else {
@@ -69,7 +75,7 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public void deleteUser(Long id) {
+    public void deleteUserById(Long id) {
         if (appUserRepository.findById(id).isPresent()) {
             log.info("User with id {} deleted successfully", id);
             appUserRepository.deleteById(id);
@@ -78,9 +84,19 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public List<AppUser> getUsers(String orgName) {
+    public void createUser(CreateNewUserForm form) {
+        saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
+        addRoleToUser(form.getEmail(), "ROLE_USER");
+    }
+
+    public List<UserForm> getUsersOfOrganization(String email) {
+        String orgName = getUser(email).getOrganizationName();
+        List<UserForm> users = new ArrayList<>();
+        appUserRepository.findAllByOrganizationName(orgName).forEach(
+                user -> users.add(
+                        new UserForm(user.getId(), user.getName(), user.getLastName(), user.getEmail())));
         log.info("Fetching all users from {}", orgName);
-        return appUserRepository.findAllByOrganizationName(orgName);
+        return users;
     }
 
     public Role saveRole(Role role) {
