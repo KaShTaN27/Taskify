@@ -95,6 +95,13 @@ public class UserService implements UserDetailsService {
         user.getRoles().add(role);
     }
 
+    public boolean isAdmin(String email) {
+        AppUser user = getUser(email);
+        List<String> roles = new ArrayList<>();
+        user.getRoles().forEach(role -> roles.add(role.getName()));
+        return roles.contains("ROLE_ADMIN");
+    }
+
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         AppUser user = appUserRepository.findByEmail(email);

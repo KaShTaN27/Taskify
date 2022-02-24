@@ -3,6 +3,7 @@ package com.example.taskify.controller;
 import com.example.taskify.controller.form.AssignTaskForm;
 import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
+import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.TaskService;
 import com.example.taskify.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,14 @@ public class TaskController {
     private final UserService userService;
     private final EmailSenderService senderService;
     private final TaskService taskService;
+    private final OrganizationService organizationService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Collection<Task>> getTasks(Principal principal) {
-        return ResponseEntity.ok().body(userService.getUser(principal.getName()).getTasks());
+        return ResponseEntity.ok().body(userService.isAdmin(principal.getName())
+                ? organizationService.getOrganizationTasks(principal.getName())
+                : userService.getUser(principal.getName()).getTasks());
     }
 
     @PostMapping("/add")

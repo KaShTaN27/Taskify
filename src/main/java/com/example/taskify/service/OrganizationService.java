@@ -2,6 +2,7 @@ package com.example.taskify.service;
 
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
+import com.example.taskify.domain.Task;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -67,6 +70,13 @@ public class OrganizationService {
         } else {
             log.error("There is no such organization with id {}", id);
         }
+    }
+
+    public Collection<Task> getOrganizationTasks(String memberEmail) {
+        Collection<Task> tasks = new ArrayList<>();
+        Organization organization = getOrganization(appUserRepository.findByEmail(memberEmail).getOrganizationName());
+        organization.getAppUsers().forEach(member -> tasks.addAll(member.getTasks()));
+        return tasks;
     }
 
     public List<Organization> getOrganizations() {
