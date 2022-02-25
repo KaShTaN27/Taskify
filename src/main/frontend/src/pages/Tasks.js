@@ -2,6 +2,7 @@ import React, {useEffect, useState} from "react";
 import axios from "axios";
 import {BASE_URL, getToken, getEmail} from "../utils/Common";
 import {MultiSelectComponent} from "@syncfusion/ej2-react-dropdowns"
+import jwtDecode from "jwt-decode";
 
 export const Tasks = () => {
     const [tasks, setTasks] = useState([]);
@@ -12,9 +13,10 @@ export const Tasks = () => {
     const date = new Date()
     const currentDate = `${date.toISOString().substring(0, 10)}`
     const [usersNames, setUsersNames] = useState([]);
+    const isAdmin = jwtDecode(getToken()).roles.includes('ROLE_ADMIN');
 
     const handleAddTask = () => {
-        axios.post(BASE_URL + "/api/tasks/add", {
+        axios.post(BASE_URL + "/api/task/add", {
             title: title,
             description: description,
             deadline: deadline,
@@ -67,8 +69,12 @@ export const Tasks = () => {
     }, []);
 
     return (
-        <div className={"container pt-4"}>
-            <div>
+        <div className="profile">
+            <div className="task-page">
+                <div align="center">
+                    <h4>Here you can create a new task</h4>
+                    <hr/>
+                </div>
                 <div className="row">
                     <div className="col-lg-6">
                         <div className="mb-3">
@@ -102,8 +108,8 @@ export const Tasks = () => {
                         onChange={e => setDescription(e.target.value)}
                     />
                 </div>
-                <div className="row">
-                    <div className="col-lg-6">
+                {isAdmin &&
+                    <div className="mb-3">
                         <MultiSelectComponent
                             placeholder="Emails"
                             dataSource={usersNames}
@@ -112,29 +118,36 @@ export const Tasks = () => {
                         >
 
                         </MultiSelectComponent>
-                    </div>
-                    <div className="col-lg-6">
-                        <div className="mb-3">
-                            <button className="btn btn-primary" onClick={handleAddTask}>Add</button>
-                        </div>
-                    </div>
+                    </div>}
+                <div className="mb-3" align="center">
+                    <button className="btn btn-primary" onClick={handleAddTask}>Add</button>
                 </div>
+                <hr/>
             </div>
-            <hr/>
-            <ul className={'list-group'}>
-                {tasks.length ? (tasks.map(task => (
-                        <li className="list-group-item note" key={task.id}>
-                            <div>
-                                <strong>{task.title}</strong>
+            <div className="tasks">
+                <hr/>
+                <ul className={'list-group'}>
+                    {tasks.length ? (tasks.map(task => (
+                            <div key={task.id}>
+                                <a href="#users" className="list-group-item list-group-item-action">
+                                    <div className="d-flex w-100 justify-content-between">
+                                        <h5 className="mb-1">{task.title}</h5>
+                                        <small className="text-muted">Deadline: {task.deadline}</small>
+                                    </div>
+                                    <div className="d-flex w-100 justify-content-between">
+                                        <h6 className="mb-1">{task.description}</h6>
+                                        <small className="text-muted">Done: {task.isDone ? "Yes" : "No"}</small>
+                                    </div>
+                                </a>
                             </div>
-                        </li>
-                    )))
-                    : (<li className="list-group-item note">
-                        <div align="center">
-                            <strong>You don't have any tasks right now.</strong>
-                        </div>
-                    </li>)}
-            </ul>
+                        )))
+                        : (<li className="list-group-item note">
+                            <div align="center">
+                                <strong>You don't have any tasks right now.</strong>
+                            </div>
+                        </li>)}
+                </ul>
+            </div>
         </div>
 
     )
