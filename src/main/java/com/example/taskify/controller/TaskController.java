@@ -39,4 +39,27 @@ public class TaskController {
         taskService.createTaskAndSendEmail(form);
         return ResponseEntity.ok("Task added to users!");
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(taskService.getTaskById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Task> updateTaskById(@PathVariable Long id,
+                                               @RequestBody UpdateTaskForm form) {
+        return ResponseEntity.ok().body(taskService.updateTaskById(id, form.getTitle(),
+                                                                   form.getDescription(), form.getDeadline()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTaskById(@PathVariable Long id) {
+        taskService.deleteTaskById(id);
+        return ResponseEntity.ok().body("Task deleted successfully");
+    }
+
+    @GetMapping("/{taskId}/users")
+    public ResponseEntity<Collection<AppUser>> getUsersWithSameTask(@PathVariable Long taskId) {
+        return ResponseEntity.ok().body(taskService.getTaskById(taskId).getUsers());
+    }
 }
