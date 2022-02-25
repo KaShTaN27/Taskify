@@ -57,9 +57,9 @@ export const Users = () => {
         <div className="profile">
             {showUserCreationInterface && (
                 <div className="add-user">
-                    <hr/>
                     <div align="center" className="pb-3">
                         <h4>Here you can create a new user</h4>
+                        <hr/>
                     </div>
                     <div className="row">
                         <div className="col-lg-6">
@@ -129,7 +129,7 @@ export const Users = () => {
                     {users.length ? (users.map((user, index) => (
                             <tr key={user.id}>
                                 <th scope="row">{index + 1}</th>
-                                <td>{user.name}</td>
+                                <td>{user.firstName}</td>
                                 <td>{user.lastName}</td>
                                 <td>{user.email}</td>
                             </tr>
