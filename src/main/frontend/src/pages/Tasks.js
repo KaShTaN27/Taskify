@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {BASE_URL, getAccessToken, getEmail, getOrganizationName} from "../utils/Common";
+import {BASE_URL, getToken, getEmail} from "../utils/Common";
 import {MultiSelectComponent} from "@syncfusion/ej2-react-dropdowns"
 
 export const Tasks = () => {
@@ -22,7 +22,7 @@ export const Tasks = () => {
             emails: emails
         }, {
             headers: {
-                'Authorization': 'Bearer ' + getAccessToken()
+                'Authorization': getToken()
             }
         }).then(response => {
             console.log('Add Task response: ', response)
@@ -35,9 +35,9 @@ export const Tasks = () => {
     useEffect(() => {
         async function fetchTasks() {
             const email = getEmail();
-            await axios.get(`${BASE_URL}/api/tasks?email=${email}`, {
+            await axios.get(`${BASE_URL}/api/task/all`, {
                 headers: {
-                    'Authorization': 'Bearer ' + getAccessToken()
+                    'Authorization': getToken()
                 }
             }).then(response => {
                 console.log('Tasks response >>', response)
@@ -50,14 +50,20 @@ export const Tasks = () => {
         }
 
         fetchTasks();
-        axios.get(`${BASE_URL}/api/user/organization/members?name=${getOrganizationName()}`, {
-            headers: {
-                'Authorization': 'Bearer ' + getAccessToken()
-            }
-        }).then(response => {
-            console.log('members >> ', response.data)
-            setUsersNames(response.data)
-        });
+        if (isAdmin) {
+            axios.get(`${BASE_URL}/api/user/all`, {
+                headers: {
+                    'Authorization': getToken()
+                }
+            }).then(response => {
+                console.log('members >> ', response.data)
+                setUsersNames(response.data.map(function (user) {
+                    return user.email
+                }))
+            });
+        } else {
+            setEmails(getEmail().split(" "));
+        }
     }, []);
 
     return (

@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import axios from "axios";
-import {BASE_URL, getAccessToken, saveEmail, savePersonalData, saveTokens} from "../utils/Common";
+import {BASE_URL, getToken, saveEmail, savePersonalData, saveToken} from "../utils/Common";
 import jwtDecode from "jwt-decode";
 import {useNavigate} from "react-router-dom";
 
@@ -12,9 +12,9 @@ export const Login = (props) => {
     const navigate = useNavigate();
 
     const getUserInfo = () => {
-        axios.get(`${BASE_URL}/api/user/info?email=${email}`, {
+        axios.get(`${BASE_URL}/api/user/info`, {
             headers: {
-                'Authorization': 'Bearer ' + getAccessToken()
+                'Authorization': getToken()
             }
         }).then(response => {
             savePersonalData(response.data.name, response.data.lastName, response.data.organizationName);
@@ -26,19 +26,14 @@ export const Login = (props) => {
 
     const handleLogin = async () => {
         setError('');
-        await axios.post(BASE_URL + "/login", null, {
-            params: {
-                username: email,
-                password: password
-            },
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+        await axios.post(BASE_URL + "/api/auth/login", {
+            email: email,
+            password: password
         }).then(response => {
             console.log('Login response >>> ', response)
-            saveTokens(response.data.access_token, response.data.refresh_token);
+            saveToken(response.data.token);
             saveEmail(email);
-            console.log(jwtDecode(getAccessToken()))
+            console.log("JWT | ", jwtDecode(getToken()))
 
             getUserInfo()
         }).catch(error => {

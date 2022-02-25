@@ -1,33 +1,33 @@
 import React, {useEffect, useState} from "react";
-import {Routes, Route, Link, useLocation, useNavigate} from "react-router-dom";
+import {Link, Route, Routes, useLocation, useNavigate} from "react-router-dom";
 import {Registration} from "./pages/Registration";
 import {Login} from "./pages/Login";
 import {Tasks} from "./pages/Tasks";
 import {Users} from "./pages/Users";
 import {
-    BASE_URL,
-    getAccessToken,
-    getEmail, getLastName, getName,
-    getRefreshToken,
-    removeEmail, removePersonalData,
-    removeTokens,
-    saveTokens
+    getToken,
+    getEmail,
+    getLastName,
+    getName,
+    removeEmail,
+    removePersonalData, removeToken
 } from "./utils/Common";
 import jwtDecode from "jwt-decode";
-import axios from "axios";
 import {Profile} from "./pages/Profile";
 
 function App() {
     const [showInterface, setShowInterface] = useState(false);
+    const [showUsersPage, setShowUsersPage] = useState(false);
     const [currentUser, setCurrentUser] = useState(undefined);
     const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
-        const user = getAccessToken();
+        const user = getToken();
         if (user) {
             setCurrentUser(user);
-            setShowInterface(true)
+            setShowInterface(true);
+            setShowUsersPage(jwtDecode(getToken()).roles.includes('ROLE_ADMIN'))
         }
     }, [])
 
@@ -35,40 +35,26 @@ function App() {
 
     useEffect(() => {
         console.log('handle route change here ', location)
-        if (getAccessToken()) {
-            const decodedAccessToken = jwtDecode(getAccessToken());
-            const decodedRefreshToken = jwtDecode(getRefreshToken());
-            if (decodedAccessToken.exp * 1000 < Date.now()) {
-                if (decodedRefreshToken.exp * 1000 > Date.now()) {
-                    console.log('We need refresh')
-                    // refresh
-                    axios.get(BASE_URL + "/api/auth/refresh", {
-                        headers: {
-                            'Authorization': 'Bearer ' + getRefreshToken()
-                        }
-                    }).then(response => {
-                        console.log(response)
-                        saveTokens(response.data.access_token, response.data.refresh_token)
-                        window.location.reload()
-                    });
-                } else {
-                    console.log('Logging out...')
-                    handleLogout();
-                    navigate("/login");
-                }
+        if (getToken()) {
+            const decodedToken = jwtDecode(getToken());
+            if (decodedToken.exp * 1000 < Date.now()) {
+                console.log('Logging out...')
+                handleLogout();
+                navigate("/login");
             }
         }
     }, [location, navigate])
 
 
     const handleLogout = () => {
-        removeTokens();
+        removeToken();
         removeEmail();
         removePersonalData();
         setShowInterface(false);
+        setShowUsersPage(false);
         setCurrentUser(undefined);
         // props.history.push('/login');
-        console.log(getAccessToken(), ' and ', getRefreshToken(), ' and ', getEmail())
+        console.log(getToken(), ' and ', getEmail())
     }
 
     return (
@@ -85,7 +71,7 @@ function App() {
                         <li className="navbar-item">
                             <Link className="nav-link" to="/tasks">Tasks</Link>
                         </li>)}
-                    {showInterface && (
+                    {showUsersPage && (
                         <li className="navbar-item">
                             <Link className="nav-link" to="/users">Users</Link>
                         </li>)}

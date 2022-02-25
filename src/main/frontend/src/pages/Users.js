@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from "react";
-import {BASE_URL, getAccessToken, getOrganizationName} from "../utils/Common";
+import {BASE_URL, getToken, getOrganizationName} from "../utils/Common";
 import axios from "axios";
 import jwtDecode from "jwt-decode";
 
@@ -10,7 +10,7 @@ export const Users = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [users, setUsers] = useState([]);
-    const showUserCreationInterface = (jwtDecode(getAccessToken()).roles.includes("ROLE_ADMIN"));
+    const showUserCreationInterface = (jwtDecode(getToken()).roles.includes("ROLE_ADMIN"));
     const organization = getOrganizationName();
 
     const handleCreate = () => {
@@ -22,7 +22,7 @@ export const Users = () => {
             organization: organization
         }, {
             headers: {
-                'Authorization': 'Bearer ' + getAccessToken()
+                'Authorization': getToken()
             }
         }).then(response => {
             console.log('Add task resp > ', response)
@@ -38,9 +38,9 @@ export const Users = () => {
 
     useEffect(() => {
         async function fetchUsers() {
-            await axios.get(`${BASE_URL}/api/user/all?orgName=${getOrganizationName()}`, {
+            await axios.get(`${BASE_URL}/api/user/all`, {
                 headers: {
-                    'Authorization': 'Bearer ' + getAccessToken()
+                    'Authorization': getToken()
                 }
             }).then(response => {
                 console.log('Users resp > ', response);
