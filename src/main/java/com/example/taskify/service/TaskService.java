@@ -1,7 +1,9 @@
 package com.example.taskify.service;
 
+import com.example.taskify.controller.form.AssignTaskForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
+import com.example.taskify.email.EmailSenderService;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class TaskService {
+
+    private final EmailSenderService senderService;
 
     private final TaskRepository taskRepository;
     private final AppUserRepository appUserRepository;
@@ -42,6 +46,11 @@ public class TaskService {
         }
     }
 
+    public Task getTaskById(Long id) {
+        Optional<Task> optionalTask = taskRepository.findById(id);
+        return optionalTask.orElseThrow(() -> new RuntimeException("There is no task with such id"));
+    }
+
     public Task updateTaskById(Long id, String title, String description, String deadline) {
         Optional<Task> optionalTask = taskRepository.findById(id);
         if (optionalTask.isPresent()) {
@@ -57,7 +66,7 @@ public class TaskService {
         }
     }
 
-    public void deleteTask(Long id) {
+    public void deleteTaskById(Long id) {
         if (taskRepository.findById(id).isPresent()) {
             log.info("Task with id {} deleted successfully", id);
             taskRepository.deleteById(id);
@@ -73,5 +82,11 @@ public class TaskService {
             if (user != null)
                 user.getTasks().add(task);
         });
+    }
+
+    public void createTaskAndSendEmail(AssignTaskForm form) {
+        saveTask(new Task(form.getTitle(), form.getDescription(), form.getDeadline(), form.getIsDone()));
+        addTaskToUsers(form.getEmails(), form.getTitle());
+        form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
     }
 }
