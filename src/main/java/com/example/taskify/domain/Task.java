@@ -1,12 +1,14 @@
 package com.example.taskify.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.*;
+
+import java.util.ArrayList;
+import java.util.Collection;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -21,6 +23,14 @@ public class Task {
     private String description;
     private String deadline;
     private boolean isDone;
+    @ManyToMany
+    @JoinTable(
+            name = "app_user_tasks",
+            joinColumns = @JoinColumn(name = "tasks_id"),
+            inverseJoinColumns = @JoinColumn(name = "app_user_id")
+    )
+    @JsonIgnore
+    private Collection<AppUser> users = new ArrayList<>();
 
     public Task(String title, String description, String deadline, boolean isDone) {
         this.title = title;
