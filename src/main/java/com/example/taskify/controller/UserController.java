@@ -19,6 +19,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class UserController {
 
     private final UserService userService;
@@ -31,7 +32,6 @@ public class UserController {
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createNewUser(@RequestBody CreateNewUserForm form) {
         userService.createUser(form);
         organizationService.addUserToOrganization(form.getOrganization(), form.getEmail());
@@ -39,34 +39,29 @@ public class UserController {
     }
 
     @GetMapping("/{id}/tasks")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<Collection<Task>> getUserTasks(@PathVariable Long id) {
         return ResponseEntity.ok().body(userService.getUserById(id).getTasks());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<AppUser> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok().body(userService.getUserById(id));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> updateUserById(@PathVariable Long id,
+    public ResponseEntity<AppUser> updateUserById(@PathVariable Long id,
                                             @RequestBody UpdateUserForm form) {
         return ResponseEntity.ok().body(userService.updateUserById(id, form.getFirstName(),
                                                                    form.getLastName(), form.getEmail()));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
         userService.deleteUserById(id);
         return ResponseEntity.ok().body("User deleted successfully");
     }
 
     @GetMapping("/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<UserForm>> getUsers(Principal principal) {
         return ResponseEntity.ok().body(userService.getUsersOfOrganization(principal.getName()));
     }
