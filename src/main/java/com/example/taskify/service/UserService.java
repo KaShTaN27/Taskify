@@ -39,7 +39,7 @@ public class UserService implements UserDetailsService {
             return appUserRepository.save(user);
         } else {
             log.error("User with email {} already exists in database", user.getEmail());
-            return user;
+            throw new RuntimeException("User with such email already exists in database");
         }
     }
 
@@ -50,7 +50,7 @@ public class UserService implements UserDetailsService {
             return user;
         } else {
             log.error("There is no such user with email: {}", email);
-            return new AppUser();
+            throw new RuntimeException("There is no such user with such email");
         }
     }
 
@@ -71,7 +71,7 @@ public class UserService implements UserDetailsService {
             return appUserRepository.save(user);
         } else {
             log.error("There is no such user with id {} in database", id);
-            return new AppUser();
+            throw new RuntimeException("There is no user with such id in database");
         }
     }
 
@@ -81,6 +81,7 @@ public class UserService implements UserDetailsService {
             appUserRepository.deleteById(id);
         } else {
             log.error("There is no such user with id {} in database", id);
+            throw new RuntimeException("There is no user with such id in database");
         }
     }
 
