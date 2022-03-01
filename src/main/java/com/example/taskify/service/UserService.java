@@ -85,11 +85,13 @@ public class UserService implements UserDetailsService {
         }
     }
 
-    public void createUser(CreateNewUserForm form) {
+    public AppUser createUser(CreateNewUserForm form) {
         AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
         user.setOrganizationName(form.getOrganization());
+        Role role = roleRepository.findByName("ROLE_USER");
+        user.getRoles().add(role);
         saveUser(user);
-        addRoleToUser(form.getEmail(), "ROLE_USER");
+        return user;
     }
 
     public List<UserForm> getUsersOfOrganization(String email) {
