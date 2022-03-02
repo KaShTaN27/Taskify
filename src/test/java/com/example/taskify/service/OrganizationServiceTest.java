@@ -6,13 +6,11 @@ import com.example.taskify.domain.Role;
 import com.example.taskify.domain.Task;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
-import com.example.taskify.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
 
@@ -26,10 +24,6 @@ class OrganizationServiceTest {
     private OrganizationRepository orgRepo;
     @Mock
     private AppUserRepository appUserRepository;
-    @Mock
-    private RoleRepository roleRepository;
-    @Mock
-    private UserService userService;
 
     @InjectMocks
     private OrganizationService orgService;
@@ -37,8 +31,7 @@ class OrganizationServiceTest {
     private static final Organization TEST_ORGANIZATION = new Organization(1L, "name", "123456", "Address", new ArrayList<>());
 
     @Test
-    void saveOrganization_IfdoesNotExistsInDatabase() {
-
+    void saveOrganization_IfDoesNotExistsInDatabase() {
         when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(null);
         when(orgRepo.save(TEST_ORGANIZATION)).thenReturn(TEST_ORGANIZATION);
 
@@ -55,7 +48,6 @@ class OrganizationServiceTest {
 
     @Test
     void getOrganization_IfExistsInDatabase() {
-
         when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
 
         Organization newOrg = orgService.getOrganization(TEST_ORGANIZATION.getName());
