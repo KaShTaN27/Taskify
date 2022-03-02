@@ -32,7 +32,7 @@ public class OrganizationService {
             return organizationRepository.save(organization);
         } else {
             log.error("Organization {} already exists in database", organization.getName());
-            return organization;
+            throw new RuntimeException("Organization with such name already exists in database");
         }
     }
 
@@ -43,7 +43,7 @@ public class OrganizationService {
             return organization;
         } else {
             log.error("There is no such organization {}", name);
-            return new Organization();
+            throw new RuntimeException("There is no such organization in database");
         }
     }
 
@@ -59,7 +59,7 @@ public class OrganizationService {
             return organizationRepository.save(organization);
         } else {
             log.error("There is no such organization with id {}", id);
-            return new Organization();
+            throw new RuntimeException("There is no such organization in database");
         }
     }
 
@@ -69,6 +69,7 @@ public class OrganizationService {
             organizationRepository.deleteById(id);
         } else {
             log.error("There is no such organization with id {}", id);
+            throw new RuntimeException("There is no such organization in database");
         }
     }
 
