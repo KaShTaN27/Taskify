@@ -105,8 +105,13 @@ public class UserService implements UserDetailsService {
     }
 
     public Role saveRole(Role role) {
-        log.info("Saving new role {} to the database", role.getName());
-        return roleRepository.save(role);
+        if (roleRepository.findByName(role.getName()) == null) {
+            log.info("Fetching role with name {}", role.getName());
+            return roleRepository.save(role);
+        } else {
+            log.error("There is no {} role in database", role.getName());
+            throw new RuntimeException("There is no such role in database");
+        }
     }
 
     public void addRoleToUser(String email, String roleName) {
