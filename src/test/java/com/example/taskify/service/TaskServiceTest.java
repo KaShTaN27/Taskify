@@ -1,6 +1,8 @@
 package com.example.taskify.service;
 
+import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
+import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,11 +22,16 @@ class TaskServiceTest {
 
     @Mock
     private TaskRepository taskRepository;
+    @Mock
+    private AppUserRepository appUserRepository;
 
     @InjectMocks
     private TaskService taskService;
 
     private static final Task TEST_TASK = new Task(1L, "title", "description", "99-99-9999", false, new ArrayList<>());
+
+    private static final AppUser TEST_USER = new AppUser(1L, "name", "lastName", "email",
+            "password", new ArrayList<>(), new ArrayList<>(), "organization");
 
     @Test
     void saveTask_IfDoesNotExistsInDatabase() {
@@ -116,10 +124,13 @@ class TaskServiceTest {
     }
 
     @Test
-    void addTaskToUsers() {
-    }
+    void addTaskToUsers_IfUsersAndTaskExists() {
+        List<String> emails = List.of(TEST_USER.getEmail());
 
-    @Test
-    void createTaskAndSendEmail() {
+        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(TEST_TASK);
+        when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(TEST_USER);
+
+        taskService.addTaskToUsers(emails, TEST_TASK.getTitle());
+        assertTrue(TEST_USER.getTasks().contains(TEST_TASK));
     }
 }
