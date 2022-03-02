@@ -31,7 +31,7 @@ public class TaskService {
             return taskRepository.save(task);
         } else {
             log.error("Task with title {} already exists in database", task.getTitle());
-            return task;
+            throw new RuntimeException("Task already exists in database");
         }
     }
 
@@ -42,7 +42,7 @@ public class TaskService {
             return task;
         } else {
             log.error("There is no such task with title: {}", title);
-            return new Task();
+            throw new RuntimeException("There is no such task in database");
         }
     }
 
@@ -62,7 +62,7 @@ public class TaskService {
             return taskRepository.save(task);
         } else {
             log.error("There is no such task with id {} in database", id);
-            return new Task();
+            throw new RuntimeException("There is no such task in database");
         }
     }
 
@@ -72,6 +72,7 @@ public class TaskService {
             taskRepository.deleteById(id);
         } else {
             log.error("There is no such task with id {} in database", id);
+            throw new RuntimeException("There is no such task in database");
         }
     }
 
