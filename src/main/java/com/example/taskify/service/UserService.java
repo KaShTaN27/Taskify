@@ -39,7 +39,7 @@ public class UserService implements UserDetailsService {
             return appUserRepository.save(user);
         } else {
             log.error("User with email {} already exists in database", user.getEmail());
-            return user;
+            throw new RuntimeException("User with such email already exists in database");
         }
     }
 
@@ -50,7 +50,7 @@ public class UserService implements UserDetailsService {
             return user;
         } else {
             log.error("There is no such user with email: {}", email);
-            return new AppUser();
+            throw new RuntimeException("There is no such user with such email");
         }
     }
 
@@ -71,7 +71,7 @@ public class UserService implements UserDetailsService {
             return appUserRepository.save(user);
         } else {
             log.error("There is no such user with id {} in database", id);
-            return new AppUser();
+            throw new RuntimeException("There is no user with such id in database");
         }
     }
 
@@ -81,14 +81,17 @@ public class UserService implements UserDetailsService {
             appUserRepository.deleteById(id);
         } else {
             log.error("There is no such user with id {} in database", id);
+            throw new RuntimeException("There is no user with such id in database");
         }
     }
 
-    public void createUser(CreateNewUserForm form) {
+    public AppUser createUser(CreateNewUserForm form) {
         AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
         user.setOrganizationName(form.getOrganization());
+        Role role = roleRepository.findByName("ROLE_USER");
+        user.getRoles().add(role);
         saveUser(user);
-        addRoleToUser(form.getEmail(), "ROLE_USER");
+        return user;
     }
 
     public List<UserForm> getUsersOfOrganization(String email) {
@@ -102,8 +105,13 @@ public class UserService implements UserDetailsService {
     }
 
     public Role saveRole(Role role) {
-        log.info("Saving new role {} to the database", role.getName());
-        return roleRepository.save(role);
+        if (roleRepository.findByName(role.getName()) == null) {
+            log.info("Fetching role with name {}", role.getName());
+            return roleRepository.save(role);
+        } else {
+            log.error("There is no {} role in database", role.getName());
+            throw new RuntimeException("There is no such role in database");
+        }
     }
 
     public void addRoleToUser(String email, String roleName) {
