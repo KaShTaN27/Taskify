@@ -1,7 +1,9 @@
 package com.example.taskify.service;
 
+import com.example.taskify.controller.form.AssignTaskForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
+import com.example.taskify.email.EmailSenderService;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -17,6 +19,8 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 public class TaskService {
+
+    private final EmailSenderService senderService;
 
     private final TaskRepository taskRepository;
     private final AppUserRepository appUserRepository;
@@ -27,7 +31,7 @@ public class TaskService {
             return taskRepository.save(task);
         } else {
             log.error("Task with title {} already exists in database", task.getTitle());
-            return task;
+            throw new RuntimeException("Task already exists in database");
         }
     }
 
@@ -38,8 +42,13 @@ public class TaskService {
             return task;
         } else {
             log.error("There is no such task with title: {}", title);
-            return new Task();
+            throw new RuntimeException("There is no such task in database");
         }
+    }
+
+    public Task getTaskById(Long id) {
+        Optional<Task> optionalTask = taskRepository.findById(id);
+        return optionalTask.orElseThrow(() -> new RuntimeException("There is no task with such id"));
     }
 
     public Task updateTaskById(Long id, String title, String description, String deadline) {
@@ -53,25 +62,32 @@ public class TaskService {
             return taskRepository.save(task);
         } else {
             log.error("There is no such task with id {} in database", id);
-            return new Task();
+            throw new RuntimeException("There is no such task in database");
         }
     }
 
-    public void deleteTask(Long id) {
+    public void deleteTaskById(Long id) {
         if (taskRepository.findById(id).isPresent()) {
             log.info("Task with id {} deleted successfully", id);
             taskRepository.deleteById(id);
         } else {
             log.error("There is no such task with id {} in database", id);
+            throw new RuntimeException("There is no such task in database");
         }
     }
 
-    public void addTaskToUsers(ArrayList<String> emails, String title) {
+    public void addTaskToUsers(List<String> emails, String title) {
         Task task = taskRepository.findByTitle(title);
         emails.forEach( email -> {
             AppUser user = appUserRepository.findByEmail(email);
             if (user != null)
                 user.getTasks().add(task);
         });
+    }
+
+    public void createTaskAndSendEmail(AssignTaskForm form) {
+        saveTask(new Task(form.getTitle(), form.getDescription(), form.getDeadline(), form.getIsDone()));
+        addTaskToUsers(form.getEmails(), form.getTitle());
+        form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
     }
 }

@@ -2,7 +2,7 @@ package com.example.taskify.controller.form;
 
 import lombok.Data;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Data
 public class AssignTaskForm {
@@ -10,5 +10,13 @@ public class AssignTaskForm {
     private String description;
     private String deadline;
     private Boolean isDone;
-    private ArrayList<String> emails;
+    private List<String> emails;
+
+    public AssignTaskForm(String title, String description, String deadline, Boolean isDone, List<String> emails) {
+        this.title = title;
+        this.description = description;
+        this.deadline = deadline;
+        this.isDone = isDone;
+        this.emails = emails;
+    }
 }

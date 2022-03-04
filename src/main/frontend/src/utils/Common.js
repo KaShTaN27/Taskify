@@ -1,11 +1,7 @@
 export const BASE_URL = "http://localhost:8080"
 
-export const getAccessToken = () => {
-    return localStorage.getItem("access_token");
- }
-
- export const getRefreshToken = () => {
-    return localStorage.getItem("refresh_token");
+export const getToken = () => {
+    return localStorage.getItem("token");
  }
 
  export const getEmail = () => {
@@ -25,9 +21,8 @@ export const getAccessToken = () => {
     return localStorage.getItem("orgName");
  }
 
- export const saveTokens = (accessToken, refreshToken) => {
-    localStorage.setItem("access_token", accessToken);
-    localStorage.setItem("refresh_token", refreshToken);
+ export const saveToken = (token) => {
+    localStorage.setItem("token", token);
  }
 
  export const saveEmail = (email) => {
@@ -40,9 +35,8 @@ export const getAccessToken = () => {
     localStorage.setItem("orgName", organizationName);
 }
 
- export const removeTokens = () => {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
+ export const removeToken = () => {
+    localStorage.removeItem("token");
  }
 
 export const removeEmail = () => {

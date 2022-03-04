@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {BASE_URL, saveTokens} from "../utils/Common";
+import {BASE_URL, saveToken} from "../utils/Common";
 import axios from "axios";
 
 export const Registration = () => {
@@ -32,7 +32,7 @@ export const Registration = () => {
                 }
             }).then(res => {
                 console.log('Registration/login response >>> ', res)
-                saveTokens(res.data.access_token, res.data.refresh_token, email)
+                saveToken(res.data.access_token, res.data.refresh_token, email)
                 props.history.push('/tasks')
             }).catch(err => {
                 console.log('Registration/login error >>> ', err)

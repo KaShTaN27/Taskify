@@ -1,7 +1,10 @@
 package com.example.taskify.controller;
 
 import com.example.taskify.controller.form.CreateNewUserForm;
+import com.example.taskify.controller.form.UpdateUserForm;
+import com.example.taskify.controller.form.UserForm;
 import com.example.taskify.domain.AppUser;
+import com.example.taskify.domain.Task;
 import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -9,12 +12,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import java.security.Principal;
+import java.util.Collection;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/user")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class UserController {
 
     private final UserService userService;
@@ -22,31 +27,42 @@ public class UserController {
 
     @GetMapping("/info")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity<AppUser> getUser(String email) {
-        return ResponseEntity.ok().body(userService.getUser(email));
+    public ResponseEntity<AppUser> getUser(Principal principal) {
+        return ResponseEntity.ok().body(userService.getUser(principal.getName()));
     }
 
     @PostMapping("/create")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> createNewUser(@RequestBody CreateNewUserForm form) {
-        userService.saveUser(new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword()));
-        userService.addRoleToUser(form.getEmail(), "ROLE_USER");
+        userService.createUser(form);
         organizationService.addUserToOrganization(form.getOrganization(), form.getEmail());
         return ResponseEntity.ok("New user created!");
     }
 
-
-    @GetMapping("/all")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity<List<AppUser>> getUsers(String orgName) {
-        return ResponseEntity.ok().body(userService.getUsers(orgName));
+    @GetMapping("/{id}/tasks")
+    public ResponseEntity<Collection<Task>> getUserTasks(@PathVariable Long id) {
+        return ResponseEntity.ok().body(userService.getUserById(id).getTasks());
     }
 
-    @GetMapping("/organization/members")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity<List<String>> getMembersOfOrganization(String name) {
-        List<String> emails = new ArrayList<>();
-        organizationService.getOrganization(name).getAppUsers().forEach(user -> emails.add(user.getEmail()));
-        return ResponseEntity.ok().body(emails);
+    @GetMapping("/{id}")
+    public ResponseEntity<AppUser> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok().body(userService.getUserById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AppUser> updateUserById(@PathVariable Long id,
+                                            @RequestBody UpdateUserForm form) {
+        return ResponseEntity.ok().body(userService.updateUserById(id, form.getFirstName(),
+                                                                   form.getLastName(), form.getEmail()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteUserById(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return ResponseEntity.ok().body("User deleted successfully");
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<UserForm>> getUsers(Principal principal) {
+        return ResponseEntity.ok().body(userService.getUsersOfOrganization(principal.getName()));
     }
 }
