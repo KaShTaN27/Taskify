@@ -1,5 +1,5 @@
 import React from "react";
-import {getAccessToken, getEmail, getLastName, getName, getOrganizationName} from "../utils/Common";
+import {getToken, getEmail, getLastName, getName, getOrganizationName} from "../utils/Common";
 import profile_icon from "./profile_icon.png";
 import jwtDecode from "jwt-decode";
 
@@ -35,7 +35,7 @@ export const Profile = () => {
                                 <h5>Organization: <strong>{getOrganizationName()}</strong></h5>
                             </li>
                             <li>
-                                <h5>Roles: <strong>{jwtDecode(getAccessToken()).roles}</strong></h5>
+                                <h5>Roles: <strong>{jwtDecode(getToken()).roles}</strong></h5>
                             </li>
                         </ul>
                     </div>
