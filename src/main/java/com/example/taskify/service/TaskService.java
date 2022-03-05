@@ -28,7 +28,7 @@ public class TaskService {
     private final AppUserRepository appUserRepository;
 
     public Task saveTask(Task task) {
-        if (taskRepository.findByTitle(task.getTitle()) == null) {
+        if (taskRepository.findByTitle(task.getTitle()).isEmpty()) {
             log.info("Saving new task {} to the database", task.getTitle());
             return taskRepository.save(task);
         } else {
@@ -37,15 +37,9 @@ public class TaskService {
         }
     }
 
-    public Task getTask(String title) {
-        Task task = taskRepository.findByTitle(title);
-        if (task != null) {
-            log.info("Fetching task with title: {}", title);
-            return task;
-        } else {
-            log.error("There is no such task with title: {}", title);
-            throw new RuntimeException("There is no such task in database");
-        }
+    public Task getTaskByTitle(String title) {
+        return taskRepository.findByTitle(title).orElseThrow(() ->
+                new ResourceNotFoundException(title + " doesn't exists in database"));
     }
 
     public Task getTaskById(Long id) {
@@ -79,7 +73,7 @@ public class TaskService {
     }
 
     public void addTaskToUsers(List<String> emails, String title) {
-        Task task = taskRepository.findByTitle(title);
+        Task task = getTaskByTitle(title);
         emails.forEach( email -> {
             AppUser user = appUserRepository.findByEmail(email);
             if (user != null)
