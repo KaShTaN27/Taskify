@@ -2,6 +2,8 @@ package com.example.taskify.service;
 
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
@@ -46,7 +48,7 @@ class TaskServiceTest {
     void saveTask_IfAlreadyExistsInDatabase() {
         when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(TEST_TASK);
 
-        assertThrows(RuntimeException.class, () -> taskService.saveTask(TEST_TASK));
+        assertThrows(ResourceAlreadyExistsException.class, () -> taskService.saveTask(TEST_TASK));
     }
 
     @Test
@@ -61,7 +63,7 @@ class TaskServiceTest {
     void getTask_IfDoesNotExistsInDatabase() {
         when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(null);
 
-        assertThrows(RuntimeException.class, () -> taskService.getTask(TEST_TASK.getTitle()));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.getTaskByTitle(TEST_TASK.getTitle()));
     }
 
     @Test
@@ -78,7 +80,7 @@ class TaskServiceTest {
         Optional<Task> optionalTask = Optional.empty();
 
         when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
-        assertThrows(RuntimeException.class, () -> taskService.getTaskById(TEST_TASK.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.getTaskById(TEST_TASK.getId()));
     }
 
     @Test
@@ -101,7 +103,7 @@ class TaskServiceTest {
         Optional<Task> optionalTask = Optional.empty();
 
         when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 taskService.updateTaskById(TEST_TASK.getId(), TEST_TASK.getTitle(), TEST_TASK.getDescription(), TEST_TASK.getDeadline()));
     }
 
@@ -120,7 +122,7 @@ class TaskServiceTest {
         Optional<Task> optionalTask = Optional.empty();
 
         when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
-        assertThrows(RuntimeException.class, () -> taskService.deleteTaskById(TEST_TASK.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.deleteTaskById(TEST_TASK.getId()));
     }
 
     @Test

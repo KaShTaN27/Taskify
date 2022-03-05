@@ -1,5 +1,6 @@
 package com.example.taskify.security;
 
+import com.example.taskify.exception.InvalidTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -44,9 +45,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     private void cleanContextAndThrowException(HttpServletResponse response) throws IOException {
-        //TODO: Create exception for authentication
         SecurityContextHolder.clearContext();
         response.sendError(SC_FORBIDDEN);
-        throw new RuntimeException("JWT token is expired or invalid");
+        throw new InvalidTokenException("JWT token is expired or invalid");
     }
 }

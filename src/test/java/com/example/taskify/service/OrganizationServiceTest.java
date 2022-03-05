@@ -4,6 +4,8 @@ import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Role;
 import com.example.taskify.domain.Task;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
 import org.junit.jupiter.api.Test;
@@ -43,7 +45,7 @@ class OrganizationServiceTest {
     void saveOrganization_IfAlreadyExistsInDatabase() {
         when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
 
-        assertThrows(RuntimeException.class, () -> orgService.saveOrganization(TEST_ORGANIZATION));
+        assertThrows(ResourceAlreadyExistsException.class, () -> orgService.saveOrganization(TEST_ORGANIZATION));
     }
 
     @Test
@@ -58,7 +60,7 @@ class OrganizationServiceTest {
     void getOrganization_IfDoesNotExistsInDatabase() {
         when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(null);
 
-        assertThrows(RuntimeException.class, () -> orgService.getOrganization(TEST_ORGANIZATION.getName()));
+        assertThrows(ResourceNotFoundException.class, () -> orgService.getOrganization(TEST_ORGANIZATION.getName()));
     }
 
     @Test
@@ -82,7 +84,7 @@ class OrganizationServiceTest {
         Optional<Organization> optionalOrg =  Optional.empty();
 
         when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(optionalOrg);
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 orgService.updateOrganizationById(TEST_ORGANIZATION.getId(), "newName", "newAddress", "654321"));
     }
 
@@ -101,7 +103,7 @@ class OrganizationServiceTest {
         Optional<Organization> optionalOrganization = Optional.empty();
 
         when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(optionalOrganization);
-        assertThrows(RuntimeException.class, () -> orgService.deleteOrganization(TEST_ORGANIZATION.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> orgService.deleteOrganization(TEST_ORGANIZATION.getId()));
     }
 
     @Test

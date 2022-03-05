@@ -4,6 +4,8 @@ import com.example.taskify.controller.form.CreateNewUserForm;
 import com.example.taskify.controller.form.UserForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Role;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.RoleRepository;
 import org.junit.jupiter.api.Test;
@@ -54,7 +56,7 @@ class UserServiceTest {
     void saveUser_IfAlreadyExistsInDatabase() {
         when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(TEST_USER);
 
-        assertThrows(RuntimeException.class, () -> userService.saveUser(TEST_USER));
+        assertThrows(ResourceAlreadyExistsException.class, () -> userService.saveUser(TEST_USER));
     }
 
     @Test
@@ -69,7 +71,7 @@ class UserServiceTest {
     void getUser_IfDoesNotExistsInDatabase() {
         when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(null);
 
-        assertThrows(RuntimeException.class, () -> userService.getUser(TEST_USER.getEmail()));
+        assertThrows(ResourceNotFoundException.class, () -> userService.getUser(TEST_USER.getEmail()));
     }
 
     @Test
@@ -77,7 +79,7 @@ class UserServiceTest {
         Optional<AppUser> userOptional = Optional.empty();
 
         when(appUserRepository.findById(TEST_USER.getId())).thenReturn(userOptional);
-        assertThrows(RuntimeException.class, () -> userService.getUserById(TEST_USER.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> userService.getUserById(TEST_USER.getId()));
     }
 
     @Test
@@ -104,7 +106,7 @@ class UserServiceTest {
         Optional<AppUser> userOptional = Optional.empty();
 
         when(appUserRepository.findById(TEST_USER.getId())).thenReturn(userOptional);
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 userService.updateUserById(TEST_USER.getId(), "NewName", "NewLastName", "NewEmail"));
     }
 
@@ -123,7 +125,7 @@ class UserServiceTest {
         Optional<AppUser> userOptional = Optional.empty();
 
         when(appUserRepository.findById(TEST_USER.getId())).thenReturn(userOptional);
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 userService.deleteUserById(TEST_USER.getId()));
     }
 
@@ -148,7 +150,7 @@ class UserServiceTest {
     void userShouldNotExistsAndHaveRoleAdmin() {
         when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(null);
 
-        assertThrows(RuntimeException.class, () -> userService.isAdmin(TEST_USER.getEmail()));
+        assertThrows(ResourceNotFoundException.class, () -> userService.isAdmin(TEST_USER.getEmail()));
     }
 
     @Test
@@ -189,7 +191,7 @@ class UserServiceTest {
         when(roleRepository.findByName(TEST_ROLE.getName())).thenReturn(TEST_ROLE);
         when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(TEST_USER);
 
-        assertThrows(RuntimeException.class, () -> userService.createUser(form));
+        assertThrows(ResourceAlreadyExistsException.class, () -> userService.createUser(form));
     }
 
     @Test
@@ -208,7 +210,7 @@ class UserServiceTest {
     void saveRole_IfAlreadyExistsInDatabase() {
         when(roleRepository.findByName(TEST_ROLE.getName())).thenReturn(TEST_ROLE);
 
-        assertThrows(RuntimeException.class, () -> userService.saveRole(TEST_ROLE));
+        assertThrows(ResourceAlreadyExistsException.class, () -> userService.saveRole(TEST_ROLE));
     }
 
     @Test

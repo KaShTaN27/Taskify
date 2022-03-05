@@ -4,6 +4,8 @@ import com.example.taskify.controller.form.CreateNewUserForm;
 import com.example.taskify.controller.form.UserForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Role;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,7 +41,7 @@ public class UserService implements UserDetailsService {
             return appUserRepository.save(user);
         } else {
             log.error("User with email {} already exists in database", user.getEmail());
-            throw new RuntimeException("User with such email already exists in database");
+            throw new ResourceAlreadyExistsException("User with email: " + user.getEmail() + " already exists");
         }
     }
 
@@ -50,13 +52,13 @@ public class UserService implements UserDetailsService {
             return user;
         } else {
             log.error("There is no such user with email: {}", email);
-            throw new RuntimeException("There is no such user with such email");
+            throw new ResourceNotFoundException("There is no user with such email:" + email);
         }
     }
 
     public AppUser getUserById(Long id)  {
         Optional<AppUser> optionalUser = appUserRepository.findById(id);
-        return optionalUser.orElseThrow(() -> new RuntimeException("There is no user with such id"));
+        return optionalUser.orElseThrow(() -> new ResourceNotFoundException("There is no user with id = " + id));
     }
 
     public AppUser updateUserById(Long id, String firstName,
@@ -71,7 +73,7 @@ public class UserService implements UserDetailsService {
             return appUserRepository.save(user);
         } else {
             log.error("There is no such user with id {} in database", id);
-            throw new RuntimeException("There is no user with such id in database");
+            throw new ResourceNotFoundException("There is no user with id = " + id + " in database");
         }
     }
 
@@ -81,7 +83,7 @@ public class UserService implements UserDetailsService {
             appUserRepository.deleteById(id);
         } else {
             log.error("There is no such user with id {} in database", id);
-            throw new RuntimeException("There is no user with such id in database");
+            throw new ResourceNotFoundException("There is no user with id = " + id + " in database");
         }
     }
 
@@ -110,7 +112,7 @@ public class UserService implements UserDetailsService {
             return roleRepository.save(role);
         } else {
             log.error("There is no {} role in database", role.getName());
-            throw new RuntimeException("There is no such role in database");
+            throw new ResourceAlreadyExistsException(role.getName() + " already exists");
         }
     }
 

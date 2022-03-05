@@ -3,6 +3,8 @@ package com.example.taskify.service;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Task;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,7 @@ public class OrganizationService {
             return organizationRepository.save(organization);
         } else {
             log.error("Organization {} already exists in database", organization.getName());
-            throw new RuntimeException("Organization with such name already exists in database");
+            throw new ResourceAlreadyExistsException("Organization " + organization.getName() + " already exists in database");
         }
     }
 
@@ -43,7 +45,7 @@ public class OrganizationService {
             return organization;
         } else {
             log.error("There is no such organization {}", name);
-            throw new RuntimeException("There is no such organization in database");
+            throw new ResourceNotFoundException(name + "doesn't exists in database");
         }
     }
 
@@ -59,7 +61,7 @@ public class OrganizationService {
             return organizationRepository.save(organization);
         } else {
             log.error("There is no such organization with id {}", id);
-            throw new RuntimeException("There is no such organization in database");
+            throw new ResourceNotFoundException("Organization with id = " + id + "doesn't exists in database");
         }
     }
 
@@ -69,7 +71,7 @@ public class OrganizationService {
             organizationRepository.deleteById(id);
         } else {
             log.error("There is no such organization with id {}", id);
-            throw new RuntimeException("There is no such organization in database");
+            throw new ResourceNotFoundException("Organization with id = " + id + "doesn't exists in database");
         }
     }
 
