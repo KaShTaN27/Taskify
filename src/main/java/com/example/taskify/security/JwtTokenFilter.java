@@ -3,7 +3,6 @@ package com.example.taskify.security;
 import com.example.taskify.exception.InvalidTokenException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,8 +12,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 @Component
 @RequiredArgsConstructor
@@ -27,8 +24,8 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         String token = tokenProvider.resolveToken(request);
         try {
             validateTokenAndSetAuthentication(token);
-        } catch (AuthenticationException e) {
-            cleanContextAndThrowException(response);
+        } catch (InvalidTokenException e) {
+            cleanContextAndThrowException(response, e);
         }
         filterChain.doFilter(request, response);
     }
@@ -44,9 +41,10 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         }
     }
 
-    private void cleanContextAndThrowException(HttpServletResponse response) throws IOException {
+    private void cleanContextAndThrowException(HttpServletResponse response, InvalidTokenException ex) {
         SecurityContextHolder.clearContext();
-        response.sendError(SC_FORBIDDEN);
-        throw new InvalidTokenException("JWT token is expired or invalid");
+        response.setHeader("error", ex.getMessage());
+        response.setStatus(ex.getStatus().value());
+        response.setContentType("application/json");
     }
 }
