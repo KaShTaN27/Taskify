@@ -1,11 +1,9 @@
 package com.example.taskify.service;
 
-import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Task;
 import com.example.taskify.exception.ResourceAlreadyExistsException;
 import com.example.taskify.exception.ResourceNotFoundException;
-import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +21,10 @@ import java.util.List;
 public class OrganizationService {
 
     private static final String ADMIN = "ROLE_ADMIN";
-    private final OrganizationRepository organizationRepository;
-    private final AppUserRepository appUserRepository;
+
     private final UserService userService;
+
+    private final OrganizationRepository organizationRepository;
 
     public Organization saveOrganization(Organization organization) {
         if (organizationRepository.findByName(organization.getName()).isEmpty()) {
@@ -69,7 +68,7 @@ public class OrganizationService {
 
     public Collection<Task> getOrganizationTasks(String memberEmail) {
         Collection<Task> tasks = new ArrayList<>();
-        Organization organization = getOrganizationByName(appUserRepository.findByEmail(memberEmail).getOrganizationName());
+        Organization organization = getOrganizationByName(userService.getUserByEmail(memberEmail).getOrganizationName());
         organization.getAppUsers().forEach(member -> tasks.addAll(member.getTasks()));
         return tasks;
     }
@@ -80,11 +79,8 @@ public class OrganizationService {
     }
 
     public void addUserToOrganization(String organizationName, String email) {
-        Organization organization = getOrganizationByName(organizationName);
-        AppUser user = appUserRepository.findByEmail(email);
         log.info("Adding user with email {} to {}", email, organizationName);
-        organization.getAppUsers().add(user);
-//        getOrganizationByName(organizationName).getAppUsers().add()
+        getOrganizationByName(organizationName).getAppUsers().add(userService.getUserByEmail(email));
     }
 
     public void addAdminToOrganization(String organizationName, String userEmail) {

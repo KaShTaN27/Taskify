@@ -6,7 +6,6 @@ import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
 import com.example.taskify.exception.ResourceAlreadyExistsException;
 import com.example.taskify.exception.ResourceNotFoundException;
-import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,9 +22,9 @@ import java.util.Optional;
 public class TaskService {
 
     private final EmailSenderService senderService;
+    private final UserService userService;
 
     private final TaskRepository taskRepository;
-    private final AppUserRepository appUserRepository;
 
     public Task saveTask(Task task) {
         if (taskRepository.findByTitle(task.getTitle()).isEmpty()) {
@@ -75,7 +74,7 @@ public class TaskService {
     public void addTaskToUsers(List<String> emails, String title) {
         Task task = getTaskByTitle(title);
         emails.forEach( email -> {
-            AppUser user = appUserRepository.findByEmail(email);
+            AppUser user = userService.getUserByEmail(email);
             if (user != null)
                 user.getTasks().add(task);
         });
