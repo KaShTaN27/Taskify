@@ -15,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -29,7 +28,7 @@ public class OrganizationService {
     private final UserService userService;
 
     public Organization saveOrganization(Organization organization) {
-        if (organizationRepository.findByName(organization.getName()) == null) {
+        if (organizationRepository.findByName(organization.getName()).isEmpty()) {
             log.info("Saving new organization {} to the database", organization.getName());
             return organizationRepository.save(organization);
         } else {
@@ -38,31 +37,24 @@ public class OrganizationService {
         }
     }
 
-    public Organization getOrganization(String name) {
-        Organization organization = organizationRepository.findByName(name);
-        if (organization != null) {
-            log.info("Organization {} found in database", name);
-            return organization;
-        } else {
-            log.error("There is no such organization {}", name);
-            throw new ResourceNotFoundException(name + "doesn't exists in database");
-        }
+    public Organization getOrganizationByName(String name) {
+        return organizationRepository.findByName(name).orElseThrow(() ->
+                new ResourceNotFoundException(name + "doesn't exists in database"));
+    }
+
+    public Organization getOrganizationById(Long id) {
+        return organizationRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Organization with id = " + id + "doesn't exists in database"));
     }
 
     public Organization updateOrganizationById(Long id, String name,
                                                String address, String phoneNumber) {
-        Optional<Organization> optionalOrganization = organizationRepository.findById(id);
-        if (optionalOrganization.isPresent()) {
-            Organization organization = optionalOrganization.get();
-            organization.setName(name);
-            organization.setAddress(address);
-            organization.setPhoneNumber(phoneNumber);
-            log.info("Organization with id {} updated successfully", id);
-            return organizationRepository.save(organization);
-        } else {
-            log.error("There is no such organization with id {}", id);
-            throw new ResourceNotFoundException("Organization with id = " + id + "doesn't exists in database");
-        }
+        Organization organization = getOrganizationById(id);
+        organization.setName(name);
+        organization.setAddress(address);
+        organization.setPhoneNumber(phoneNumber);
+        log.info("Organization with id {} updated successfully", id);
+        return organizationRepository.save(organization);
     }
 
     public void deleteOrganization(Long id) {
@@ -77,7 +69,7 @@ public class OrganizationService {
 
     public Collection<Task> getOrganizationTasks(String memberEmail) {
         Collection<Task> tasks = new ArrayList<>();
-        Organization organization = getOrganization(appUserRepository.findByEmail(memberEmail).getOrganizationName());
+        Organization organization = getOrganizationByName(appUserRepository.findByEmail(memberEmail).getOrganizationName());
         organization.getAppUsers().forEach(member -> tasks.addAll(member.getTasks()));
         return tasks;
     }
@@ -88,10 +80,11 @@ public class OrganizationService {
     }
 
     public void addUserToOrganization(String organizationName, String email) {
-        Organization organization = organizationRepository.findByName(organizationName);
+        Organization organization = getOrganizationByName(organizationName);
         AppUser user = appUserRepository.findByEmail(email);
         log.info("Adding user with email {} to {}", email, organizationName);
         organization.getAppUsers().add(user);
+//        getOrganizationByName(organizationName).getAppUsers().add()
     }
 
     public void addAdminToOrganization(String organizationName, String userEmail) {
