@@ -11,10 +11,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -28,13 +34,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginForm form) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(form.getEmail(), form.getPassword()));
-        AppUser user = userService.getUserByEmail(form.getEmail());
-        String token = tokenProvider.generateToken(form.getEmail(), user.getRoles());
-        Map<Object, Object> response = new HashMap<>();
-        response.put("email", form.getEmail());
-        response.put("token", token);
-        return ResponseEntity.ok(response);
+        try {
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(form.getEmail(), form.getPassword()));
+            AppUser user = userService.getUserByEmail(form.getEmail());
+            String token = tokenProvider.generateToken(form.getEmail(), user.getRoles());
+            Map<Object, Object> response = new HashMap<>();
+            response.put("email", form.getEmail());
+            response.put("token", token);
+            return ResponseEntity.ok(response);
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(FORBIDDEN).body("Invalid password or email.");
+        }
     }
 
     @PostMapping("/signup")

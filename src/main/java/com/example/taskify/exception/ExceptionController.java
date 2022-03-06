@@ -9,7 +9,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class ExceptionController extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ExceptionWithHttpStatus.class)
-    public ResponseEntity<?> handleException(ResourceNotFoundException exception) {
+    public ResponseEntity<?> handleException(ExceptionWithHttpStatus exception) {
         return ResponseEntity.status(exception.getStatus()).body(exception.getMessage());
     }
 }
