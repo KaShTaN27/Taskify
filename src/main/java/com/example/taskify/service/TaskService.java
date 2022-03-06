@@ -47,18 +47,12 @@ public class TaskService {
     }
 
     public Task updateTaskById(Long id, String title, String description, String deadline) {
-        Optional<Task> optionalTask = taskRepository.findById(id);
-        if (optionalTask.isPresent()) {
-            Task task = optionalTask.get();
-            task.setTitle(title);
-            task.setDescription(description);
-            task.setDeadline(deadline);
-            log.info("Task with id {} successfully updated", id);
-            return taskRepository.save(task);
-        } else {
-            log.error("There is no such task with id {} in database", id);
-            throw new ResourceNotFoundException("Task with id = " + id + " doesn't exists in database");
-        }
+        Task task = getTaskById(id);
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setDeadline(deadline);
+        log.info("Task with id {} successfully updated", id);
+        return taskRepository.save(task);
     }
 
     public void deleteTaskById(Long id) {
@@ -73,7 +67,7 @@ public class TaskService {
 
     public void addTaskToUsers(List<String> emails, String title) {
         Task task = getTaskByTitle(title);
-        emails.forEach( email -> {
+        emails.forEach(email -> {
             AppUser user = userService.getUserByEmail(email);
             if (user != null)
                 user.getTasks().add(task);
