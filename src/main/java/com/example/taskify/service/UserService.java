@@ -90,7 +90,7 @@ public class UserService implements UserDetailsService {
     public AppUser createUser(CreateNewUserForm form) {
         AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
         user.setOrganizationName(form.getOrganization());
-        Role role = roleRepository.findByName("ROLE_USER");
+        Role role = getRoleByName("ROLE_USER");
         user.getRoles().add(role);
         saveUser(user);
         return user;
@@ -107,7 +107,7 @@ public class UserService implements UserDetailsService {
     }
 
     public Role saveRole(Role role) {
-        if (roleRepository.findByName(role.getName()) == null) {
+        if (roleRepository.findByName(role.getName()).isEmpty()) {
             log.info("Fetching role with name {}", role.getName());
             return roleRepository.save(role);
         } else {
@@ -116,9 +116,13 @@ public class UserService implements UserDetailsService {
         }
     }
 
+    public Role getRoleByName(String name) {
+        return roleRepository.findByName(name).orElseThrow(() -> new ResourceNotFoundException(name + " doesn't exists in database"));
+    }
+
     public void addRoleToUser(String email, String roleName) {
         AppUser user = appUserRepository.findByEmail(email);
-        Role role = roleRepository.findByName(roleName);
+        Role role = getRoleByName(roleName);
         log.info("Adding role {} to user with email: {}", roleName, email);
         user.getRoles().add(role);
     }
