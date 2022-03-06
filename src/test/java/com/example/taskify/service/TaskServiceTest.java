@@ -123,7 +123,7 @@ class TaskServiceTest {
         List<String> emails = List.of(TEST_USER.getEmail());
 
         when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(Optional.of(TEST_TASK));
-        when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(TEST_USER);
+        when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(Optional.of(TEST_USER));
 
         taskService.addTaskToUsers(emails, TEST_TASK.getTitle());
         assertTrue(TEST_USER.getTasks().contains(TEST_TASK));
