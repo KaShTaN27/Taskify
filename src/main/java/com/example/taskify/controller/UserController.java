@@ -28,7 +28,7 @@ public class UserController {
     @GetMapping("/info")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<AppUser> getUser(Principal principal) {
-        return ResponseEntity.ok().body(userService.getUser(principal.getName()));
+        return ResponseEntity.ok().body(userService.getUserByEmail(principal.getName()));
     }
 
     @PostMapping("/create")
