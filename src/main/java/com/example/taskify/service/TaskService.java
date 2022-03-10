@@ -4,7 +4,8 @@ import com.example.taskify.controller.form.AssignTaskForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
-import com.example.taskify.repository.AppUserRepository;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,49 +22,37 @@ import java.util.Optional;
 public class TaskService {
 
     private final EmailSenderService senderService;
+    private final UserService userService;
 
     private final TaskRepository taskRepository;
-    private final AppUserRepository appUserRepository;
 
     public Task saveTask(Task task) {
-        if (taskRepository.findByTitle(task.getTitle()) == null) {
+        if (taskRepository.findByTitle(task.getTitle()).isEmpty()) {
             log.info("Saving new task {} to the database", task.getTitle());
             return taskRepository.save(task);
         } else {
             log.error("Task with title {} already exists in database", task.getTitle());
-            throw new RuntimeException("Task already exists in database");
+            throw new ResourceAlreadyExistsException("Task " + task.getTitle() + " already exists in database");
         }
     }
 
-    public Task getTask(String title) {
-        Task task = taskRepository.findByTitle(title);
-        if (task != null) {
-            log.info("Fetching task with title: {}", title);
-            return task;
-        } else {
-            log.error("There is no such task with title: {}", title);
-            throw new RuntimeException("There is no such task in database");
-        }
+    public Task getTaskByTitle(String title) {
+        return taskRepository.findByTitle(title).orElseThrow(() ->
+                new ResourceNotFoundException(title + " doesn't exists in database"));
     }
 
     public Task getTaskById(Long id) {
         Optional<Task> optionalTask = taskRepository.findById(id);
-        return optionalTask.orElseThrow(() -> new RuntimeException("There is no task with such id"));
+        return optionalTask.orElseThrow(() -> new ResourceNotFoundException("Task with id = " + id + " doesn't exists in database"));
     }
 
     public Task updateTaskById(Long id, String title, String description, String deadline) {
-        Optional<Task> optionalTask = taskRepository.findById(id);
-        if (optionalTask.isPresent()) {
-            Task task = optionalTask.get();
-            task.setTitle(title);
-            task.setDescription(description);
-            task.setDeadline(deadline);
-            log.info("Task with id {} successfully updated", id);
-            return taskRepository.save(task);
-        } else {
-            log.error("There is no such task with id {} in database", id);
-            throw new RuntimeException("There is no such task in database");
-        }
+        Task task = getTaskById(id);
+        task.setTitle(title);
+        task.setDescription(description);
+        task.setDeadline(deadline);
+        log.info("Task with id {} successfully updated", id);
+        return taskRepository.save(task);
     }
 
     public void deleteTaskById(Long id) {
@@ -72,14 +61,14 @@ public class TaskService {
             taskRepository.deleteById(id);
         } else {
             log.error("There is no such task with id {} in database", id);
-            throw new RuntimeException("There is no such task in database");
+            throw new ResourceNotFoundException("Task with id = " + id + " doesn't exists in database");
         }
     }
 
     public void addTaskToUsers(List<String> emails, String title) {
-        Task task = taskRepository.findByTitle(title);
-        emails.forEach( email -> {
-            AppUser user = appUserRepository.findByEmail(email);
+        Task task = getTaskByTitle(title);
+        emails.forEach(email -> {
+            AppUser user = userService.getUserByEmail(email);
             if (user != null)
                 user.getTasks().add(task);
         });

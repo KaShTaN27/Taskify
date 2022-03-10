@@ -1,9 +1,9 @@
 package com.example.taskify.service;
 
-import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Task;
-import com.example.taskify.repository.AppUserRepository;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.OrganizationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -22,45 +21,39 @@ import java.util.Optional;
 public class OrganizationService {
 
     private static final String ADMIN = "ROLE_ADMIN";
-    private final OrganizationRepository organizationRepository;
-    private final AppUserRepository appUserRepository;
+
     private final UserService userService;
 
+    private final OrganizationRepository organizationRepository;
+
     public Organization saveOrganization(Organization organization) {
-        if (organizationRepository.findByName(organization.getName()) == null) {
+        if (organizationRepository.findByName(organization.getName()).isEmpty()) {
             log.info("Saving new organization {} to the database", organization.getName());
             return organizationRepository.save(organization);
         } else {
             log.error("Organization {} already exists in database", organization.getName());
-            throw new RuntimeException("Organization with such name already exists in database");
+            throw new ResourceAlreadyExistsException("Organization " + organization.getName() + " already exists in database");
         }
     }
 
-    public Organization getOrganization(String name) {
-        Organization organization = organizationRepository.findByName(name);
-        if (organization != null) {
-            log.info("Organization {} found in database", name);
-            return organization;
-        } else {
-            log.error("There is no such organization {}", name);
-            throw new RuntimeException("There is no such organization in database");
-        }
+    public Organization getOrganizationByName(String name) {
+        return organizationRepository.findByName(name).orElseThrow(() ->
+                new ResourceNotFoundException(name + "doesn't exists in database"));
+    }
+
+    public Organization getOrganizationById(Long id) {
+        return organizationRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Organization with id = " + id + "doesn't exists in database"));
     }
 
     public Organization updateOrganizationById(Long id, String name,
                                                String address, String phoneNumber) {
-        Optional<Organization> optionalOrganization = organizationRepository.findById(id);
-        if (optionalOrganization.isPresent()) {
-            Organization organization = optionalOrganization.get();
-            organization.setName(name);
-            organization.setAddress(address);
-            organization.setPhoneNumber(phoneNumber);
-            log.info("Organization with id {} updated successfully", id);
-            return organizationRepository.save(organization);
-        } else {
-            log.error("There is no such organization with id {}", id);
-            throw new RuntimeException("There is no such organization in database");
-        }
+        Organization organization = getOrganizationById(id);
+        organization.setName(name);
+        organization.setAddress(address);
+        organization.setPhoneNumber(phoneNumber);
+        log.info("Organization with id {} updated successfully", id);
+        return organizationRepository.save(organization);
     }
 
     public void deleteOrganization(Long id) {
@@ -69,13 +62,13 @@ public class OrganizationService {
             organizationRepository.deleteById(id);
         } else {
             log.error("There is no such organization with id {}", id);
-            throw new RuntimeException("There is no such organization in database");
+            throw new ResourceNotFoundException("Organization with id = " + id + "doesn't exists in database");
         }
     }
 
     public Collection<Task> getOrganizationTasks(String memberEmail) {
         Collection<Task> tasks = new ArrayList<>();
-        Organization organization = getOrganization(appUserRepository.findByEmail(memberEmail).getOrganizationName());
+        Organization organization = getOrganizationByName(userService.getUserByEmail(memberEmail).getOrganizationName());
         organization.getAppUsers().forEach(member -> tasks.addAll(member.getTasks()));
         return tasks;
     }
@@ -86,10 +79,8 @@ public class OrganizationService {
     }
 
     public void addUserToOrganization(String organizationName, String email) {
-        Organization organization = organizationRepository.findByName(organizationName);
-        AppUser user = appUserRepository.findByEmail(email);
         log.info("Adding user with email {} to {}", email, organizationName);
-        organization.getAppUsers().add(user);
+        getOrganizationByName(organizationName).getAppUsers().add(userService.getUserByEmail(email));
     }
 
     public void addAdminToOrganization(String organizationName, String userEmail) {

@@ -1,6 +1,7 @@
 package com.example.taskify.security;
 
 import com.example.taskify.domain.Role;
+import com.example.taskify.exception.InvalidTokenException;
 import com.example.taskify.service.UserService;
 import io.jsonwebtoken.*;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +58,8 @@ public class JwtTokenProvider {
         try {
             Jws<Claims> claimsJws = Jwts.parser().setSigningKey(secretWord).parseClaimsJws(token);
             return !claimsJws.getBody().getExpiration().before(new Date());
-        } catch (JwtException e) {
-            throw new RuntimeException("Expired JWT token");
+        } catch (JwtException | IllegalArgumentException e) {
+            throw new InvalidTokenException("JWT token is invalid");
         }
     }
 

@@ -30,7 +30,7 @@ public class TaskController {
     public ResponseEntity<Collection<Task>> getTasks(Principal principal) {
         return ResponseEntity.ok().body(userService.isAdmin(principal.getName())
                 ? organizationService.getOrganizationTasks(principal.getName())
-                : userService.getUser(principal.getName()).getTasks());
+                : userService.getUserByEmail(principal.getName()).getTasks());
     }
 
     @PostMapping("/add")

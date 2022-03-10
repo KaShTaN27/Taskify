@@ -4,6 +4,8 @@ import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
 import com.example.taskify.domain.Role;
 import com.example.taskify.domain.Task;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
 import org.junit.jupiter.api.Test;
@@ -32,7 +34,7 @@ class OrganizationServiceTest {
 
     @Test
     void saveOrganization_IfDoesNotExistsInDatabase() {
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(null);
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.empty());
         when(orgRepo.save(TEST_ORGANIZATION)).thenReturn(TEST_ORGANIZATION);
 
         Organization newOrg = orgService.saveOrganization(TEST_ORGANIZATION);
@@ -41,33 +43,32 @@ class OrganizationServiceTest {
 
     @Test
     void saveOrganization_IfAlreadyExistsInDatabase() {
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
 
-        assertThrows(RuntimeException.class, () -> orgService.saveOrganization(TEST_ORGANIZATION));
+        assertThrows(ResourceAlreadyExistsException.class, () -> orgService.saveOrganization(TEST_ORGANIZATION));
     }
 
     @Test
     void getOrganization_IfExistsInDatabase() {
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
 
-        Organization newOrg = orgService.getOrganization(TEST_ORGANIZATION.getName());
+        Organization newOrg = orgService.getOrganizationByName(TEST_ORGANIZATION.getName());
         assertEquals(TEST_ORGANIZATION, newOrg);
     }
 
     @Test
     void getOrganization_IfDoesNotExistsInDatabase() {
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(null);
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> orgService.getOrganization(TEST_ORGANIZATION.getName()));
+        assertThrows(ResourceNotFoundException.class, () -> orgService.getOrganizationByName(TEST_ORGANIZATION.getName()));
     }
 
     @Test
     void updateOrganizationById_IfExistsInDatabase() {
-        Optional<Organization> optionalOrg = Optional.of(TEST_ORGANIZATION);
         Organization org = new Organization(1L, "newName", "654321", "newAddress", null);
         TEST_ORGANIZATION.setAppUsers(null);
 
-        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(optionalOrg);
+        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(Optional.of(TEST_ORGANIZATION));
         when(orgRepo.save(org)).thenReturn(org);
 
         Organization newOrg = orgService.updateOrganizationById(TEST_ORGANIZATION.getId(), "newName", "newAddress", "654321");
@@ -79,18 +80,15 @@ class OrganizationServiceTest {
 
     @Test
     void updateOrganizationById_IfDoesNotExistsInDatabase() {
-        Optional<Organization> optionalOrg =  Optional.empty();
+        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(Optional.empty());
 
-        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(optionalOrg);
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 orgService.updateOrganizationById(TEST_ORGANIZATION.getId(), "newName", "newAddress", "654321"));
     }
 
     @Test
     void deleteOrganization_IfExistsInDatabase() {
-        Optional<Organization> optionalOrganization = Optional.of(TEST_ORGANIZATION);
-
-        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(optionalOrganization);
+        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(Optional.of(TEST_ORGANIZATION));
 
         orgService.deleteOrganization(TEST_ORGANIZATION.getId());
         verify(orgRepo, times(1)).deleteById(TEST_ORGANIZATION.getId());
@@ -98,10 +96,9 @@ class OrganizationServiceTest {
 
     @Test
     void deleteOrganization_IfDoesNotExistsInDatabase() {
-        Optional<Organization> optionalOrganization = Optional.empty();
+        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(Optional.empty());
 
-        when(orgRepo.findById(TEST_ORGANIZATION.getId())).thenReturn(optionalOrganization);
-        assertThrows(RuntimeException.class, () -> orgService.deleteOrganization(TEST_ORGANIZATION.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> orgService.deleteOrganization(TEST_ORGANIZATION.getId()));
     }
 
     @Test
@@ -114,8 +111,8 @@ class OrganizationServiceTest {
         AppUser user = new AppUser(1L, "name", "lastName", "email", "password", null, Arrays.asList(task1, task2), TEST_ORGANIZATION.getName());
         TEST_ORGANIZATION.setAppUsers(List.of(user));
 
-        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(user);
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
+        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
         Collection<Task> tasks = orgService.getOrganizationTasks(user.getEmail());
         assertEquals(testTasks, tasks);
     }
@@ -125,8 +122,8 @@ class OrganizationServiceTest {
         AppUser user = new AppUser(1L, "name", "lastName", "email", "password", null, null, TEST_ORGANIZATION.getName());
         TEST_ORGANIZATION.setAppUsers(new ArrayList<>());
 
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
-        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(user);
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
+        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         orgService.addUserToOrganization(TEST_ORGANIZATION.getName(), user.getEmail());
         assertNotEquals(null, TEST_ORGANIZATION.getAppUsers());
     }
@@ -140,7 +137,6 @@ class OrganizationServiceTest {
         assertNotEquals(null, newOrganizations);
     }
 
-    // Добавление этого теста не влияет на покрытиие
     @Test
     void ShouldGetAllOrganization_IfDoesNotExists() {
 
@@ -149,17 +145,14 @@ class OrganizationServiceTest {
         assertNull(newOrganizations);
     }
 
-
     @Test
     void addAdminToOrganization() {
         Role role = new Role(1L, "ROLE_ADMIN");
         AppUser user = new AppUser(1L, "name", "lastName", "email", "password", List.of(role), null, TEST_ORGANIZATION.getName());
 
-        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(user);
-        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(TEST_ORGANIZATION);
+        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
 
-        // Как сделать так, чтобы мы инициализировали userService и переходили к методу
-        // addRoleToUser
         orgService.addAdminToOrganization(TEST_ORGANIZATION.getName(), user.getEmail());
         assertTrue(TEST_ORGANIZATION.getAppUsers().contains(user));
     }

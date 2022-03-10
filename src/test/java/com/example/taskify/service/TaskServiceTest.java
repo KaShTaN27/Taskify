@@ -2,6 +2,8 @@ package com.example.taskify.service;
 
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
+import com.example.taskify.exception.ResourceAlreadyExistsException;
+import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.TaskRepository;
 import org.junit.jupiter.api.Test;
@@ -35,7 +37,7 @@ class TaskServiceTest {
 
     @Test
     void saveTask_IfDoesNotExistsInDatabase() {
-        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(null);
+        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(Optional.empty());
         when(taskRepository.save(TEST_TASK)).thenReturn(TEST_TASK);
 
         Task task = taskService.saveTask(TEST_TASK);
@@ -44,49 +46,46 @@ class TaskServiceTest {
 
     @Test
     void saveTask_IfAlreadyExistsInDatabase() {
-        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(TEST_TASK);
+        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(Optional.of(TEST_TASK));
 
-        assertThrows(RuntimeException.class, () -> taskService.saveTask(TEST_TASK));
+        assertThrows(ResourceAlreadyExistsException.class, () -> taskService.saveTask(TEST_TASK));
     }
 
     @Test
     void getTask_IfExistsInDatabase() {
-        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(TEST_TASK);
+        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(Optional.of(TEST_TASK));
 
-        Task task = taskService.getTask(TEST_TASK.getTitle());
+        Task task = taskService.getTaskByTitle(TEST_TASK.getTitle());
         assertEquals(TEST_TASK, task);
     }
 
     @Test
     void getTask_IfDoesNotExistsInDatabase() {
-        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(null);
+        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(Optional.empty());
 
-        assertThrows(RuntimeException.class, () -> taskService.getTask(TEST_TASK.getTitle()));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.getTaskByTitle(TEST_TASK.getTitle()));
     }
 
     @Test
     void getTaskById_IfExistsInDatabase() {
-        Optional<Task> optionalTask = Optional.of(TEST_TASK);
+        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.of(TEST_TASK));
 
-        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
         Task task = taskService.getTaskById(TEST_TASK.getId());
         assertEquals(TEST_TASK, task);
     }
 
     @Test
     void getTaskById_IfDoesNotExistsInDatabase() {
-        Optional<Task> optionalTask = Optional.empty();
+        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.empty());
 
-        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
-        assertThrows(RuntimeException.class, () -> taskService.getTaskById(TEST_TASK.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.getTaskById(TEST_TASK.getId()));
     }
 
     @Test
     void updateTaskById_IfExistsInDatabase() {
-        Optional<Task> optionalTask = Optional.of(TEST_TASK);
         Task task = new Task(1L, "newTitle", "newDescription", "newDeadline", false, new ArrayList<>());
 
-        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
+        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.of(TEST_TASK));
         when(taskRepository.save(task)).thenReturn(task);
 
         Task newTask = taskService.updateTaskById(TEST_TASK.getId(), task.getTitle(), task.getDescription(), task.getDeadline());
@@ -98,18 +97,15 @@ class TaskServiceTest {
 
     @Test
     void updateTaskById_IfUserDoesNotExistsInDatabase() {
-        Optional<Task> optionalTask = Optional.empty();
+        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.empty());
 
-        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
-        assertThrows(RuntimeException.class, () ->
+        assertThrows(ResourceNotFoundException.class, () ->
                 taskService.updateTaskById(TEST_TASK.getId(), TEST_TASK.getTitle(), TEST_TASK.getDescription(), TEST_TASK.getDeadline()));
     }
 
     @Test
     void deleteTaskById_IfExistsInDatabase() {
-        Optional<Task> optionalTask = Optional.of(TEST_TASK);
-
-        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
+        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.of(TEST_TASK));
 
         taskService.deleteTaskById(TEST_TASK.getId());
         verify(taskRepository, times(1)).deleteById(TEST_TASK.getId());
@@ -117,18 +113,17 @@ class TaskServiceTest {
 
     @Test
     void deleteTaskById_IfDoesNotExistsInDatabase() {
-        Optional<Task> optionalTask = Optional.empty();
+        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.empty());
 
-        when(taskRepository.findById(TEST_TASK.getId())).thenReturn(optionalTask);
-        assertThrows(RuntimeException.class, () -> taskService.deleteTaskById(TEST_TASK.getId()));
+        assertThrows(ResourceNotFoundException.class, () -> taskService.deleteTaskById(TEST_TASK.getId()));
     }
 
     @Test
     void addTaskToUsers_IfUsersAndTaskExists() {
         List<String> emails = List.of(TEST_USER.getEmail());
 
-        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(TEST_TASK);
-        when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(TEST_USER);
+        when(taskRepository.findByTitle(TEST_TASK.getTitle())).thenReturn(Optional.of(TEST_TASK));
+        when(appUserRepository.findByEmail(TEST_USER.getEmail())).thenReturn(Optional.of(TEST_USER));
 
         taskService.addTaskToUsers(emails, TEST_TASK.getTitle());
         assertTrue(TEST_USER.getTasks().contains(TEST_TASK));
