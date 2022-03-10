@@ -68,8 +68,13 @@ public class OrganizationService {
 
     public Collection<Task> getOrganizationTasks(String memberEmail) {
         Collection<Task> tasks = new ArrayList<>();
+        Collection<Task> uniqueTasks = new ArrayList<>();
         Organization organization = getOrganizationByName(userService.getUserByEmail(memberEmail).getOrganizationName());
         organization.getAppUsers().forEach(member -> tasks.addAll(member.getTasks()));
+        tasks.forEach(task -> {
+            if (!uniqueTasks.contains(task))
+                uniqueTasks.add(task);
+        });
         return tasks;
     }
 
