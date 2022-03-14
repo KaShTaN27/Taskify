@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {BASE_URL, saveToken} from "../utils/Common";
+import {BASE_URL, saveEmail, saveToken} from "../utils/Common";
 import axios from "axios";
 import {useNavigate} from "react-router-dom";
 import {TextField} from "@mui/material";
@@ -14,9 +14,23 @@ export const Registration = () => {
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
 
+    const loginRegisteredUser = () => {
+        axios.post(BASE_URL + "/api/auth/login", {
+            email: email,
+            password: password
+        }).then(res => {
+            console.log('Registration/login response >>> ', res)
+            saveToken(res.data.token)
+            saveEmail(email);
+            navigate("/tasks");
+            // window.location.reload();
+        }).catch(err => {
+            console.log('Registration/login error >>> ', err)
+        })
+    }
 
-    const handleRegistration = () => {
-        axios.post(BASE_URL + "/api/auth/signup", {
+    const handleRegistration = async () => {
+        await axios.post(BASE_URL + "/api/auth/signup", {
             name: organizationName,
             phoneNumber: phoneNumber,
             address: address,
@@ -26,21 +40,7 @@ export const Registration = () => {
             password: password
         }).then(response => {
             console.log('Registration response >>> ', response)
-            axios.post(BASE_URL + "/api/auth/login", null, {
-                params: {
-                    username: email,
-                    password: password
-                },
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            }).then(res => {
-                console.log('Registration/login response >>> ', res)
-                saveToken(res.data.token)
-                navigate('/tasks');
-            }).catch(err => {
-                console.log('Registration/login error >>> ', err)
-            })
+            loginRegisteredUser();
         }).catch(error => {
             console.log('Registration error >>> ', error)
         })
@@ -49,7 +49,7 @@ export const Registration = () => {
     return (
         <div className="row m-auto">
             <div className="col-lg-6 mt-5" align="center">
-                <img src="https://account.bulletprofit.com/upload/auth/login.png" alt="sign up illustration"
+                <img src="https://account.bulletprofit.com/upload/auth/user-register.png" alt="sign up illustration"
                      width="600px"/>
             </div>
             <div className="col-lg-6">
@@ -58,7 +58,7 @@ export const Registration = () => {
                         <h3>Welcome to the registration page!</h3>
                         <hr/>
                     </div>
-                    <form>
+                    <div>
                         <TextField
                             variant="standard"
                             label="Name of organization"
@@ -132,11 +132,10 @@ export const Registration = () => {
                                 Sign up
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>
-
     )
 }
 
