@@ -7,6 +7,7 @@ import com.example.taskify.domain.Role;
 import com.example.taskify.exception.ResourceAlreadyExistsException;
 import com.example.taskify.exception.ResourceNotFoundException;
 import com.example.taskify.repository.AppUserRepository;
+import com.example.taskify.repository.OrganizationRepository;
 import com.example.taskify.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class UserService implements UserDetailsService {
 
     private final AppUserRepository appUserRepository;
     private final RoleRepository roleRepository;
+    private final OrganizationRepository organizationRepository;
     private final PasswordEncoder passwordEncoder;
 
     public AppUser saveUser(AppUser user) {
@@ -56,16 +59,21 @@ public class UserService implements UserDetailsService {
 
     public AppUser updateUserById(Long id, String firstName,
                                   String lastName, String email) {
-        AppUser user = getUserById(id);
-        user.setName(firstName);
-        user.setLastName(lastName);
-        user.setEmail(email);
-        log.info("User with id {} updated successfully", id);
-        return appUserRepository.save(user);
+        if (appUserRepository.findByEmail(email).isEmpty()) {
+            AppUser user = getUserById(id);
+            user.setName(firstName);
+            user.setLastName(lastName);
+            user.setEmail(email);
+            log.info("User with id {} updated successfully", id);
+            return appUserRepository.save(user);
+        } else
+            throw new ResourceAlreadyExistsException("User with email: " + email + " already exists");
     }
 
     public void deleteUserById(Long id) {
-        if (appUserRepository.findById(id).isPresent()) {
+        Optional<AppUser> user = appUserRepository.findById(id);
+        if (user.isPresent()) {
+            organizationRepository.findByName(user.get().getOrganizationName()).get().getAppUsers().remove(user.get());
             log.info("User with id {} deleted successfully", id);
             appUserRepository.deleteById(id);
         } else {
