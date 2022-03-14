@@ -1,19 +1,80 @@
 import React, {useEffect, useState} from "react";
 import axios from "axios";
-import {BASE_URL, getToken, getEmail} from "../utils/Common";
+import {BASE_URL, getEmail, getToken} from "../utils/Common";
 import {MultiSelectComponent} from "@syncfusion/ej2-react-dropdowns"
 import jwtDecode from "jwt-decode";
+import {
+    Accordion,
+    AccordionActions,
+    AccordionDetails,
+    AccordionSummary,
+    Button,
+    Checkbox,
+    List,
+    ListItem,
+    ListItemIcon,
+    ListItemText,
+    Typography
+} from "@mui/material";
+import {AccountBox, Description, Done, ExpandMoreOutlined, Work} from "@mui/icons-material";
 
 export const Tasks = () => {
+
     const [tasks, setTasks] = useState([]);
+
+    // Task payload
     const [title, setTitle] = useState('');
-    const [deadline, setDeadline] = useState('');
     const [description, setDescription] = useState('');
+    const [deadline, setDeadline] = useState('');
     const [emails, setEmails] = useState([]);
+
+    // For deadline select
     const date = new Date()
     const currentDate = `${date.toISOString().substring(0, 10)}`
+
+    // For assigning task to users
     const [usersNames, setUsersNames] = useState([]);
+
     const isAdmin = jwtDecode(getToken()).roles.includes('ROLE_ADMIN');
+
+    const [isDone, setIsDone] = useState(false);
+    const [users, setUsers] = useState([]);
+    const [selectedTask, setSelectedTask] = useState(-1);
+    const selectTask = (panel) => (event, newTask) => {
+
+        setSelectedTask(newTask ? panel : -1);
+        if (selectedTask !== panel) {
+            getUsersOfTask(panel);
+        }
+    }
+
+    const deleteTaskById = (id) => {
+        const newTasks = tasks.filter(task => task.id !== id);
+        setTasks(newTasks);
+        axios.delete(`${BASE_URL}/api/task/${id}`, {
+            headers: {
+                'Authorization': getToken()
+            }
+        }).then(response => {
+            console.log(response.data)
+        }).catch(err => {
+            console.log(err)
+        })
+    }
+
+    const getUsersOfTask = (id) => {
+        console.log(id)
+        axios.get(`${BASE_URL}/api/task/${id}/users`, {
+            headers: {
+                'Authorization': getToken()
+            }
+        }).then(response => {
+            console.log('User by id >>', response)
+            setUsers(response.data)
+        }).catch(error => {
+            console.log('User by id error >>', error)
+        })
+    }
 
     const handleAddTask = () => {
         axios.post(BASE_URL + "/api/task/add", {
@@ -127,19 +188,45 @@ export const Tasks = () => {
             <div className="tasks">
                 <hr/>
                 <ul className={'list-group'}>
-                    {tasks.length ? (tasks.map(task => (
-                            <div key={task.id}>
-                                <a href="#users" className="list-group-item list-group-item-action">
-                                    <div className="d-flex w-100 justify-content-between">
-                                        <h5 className="mb-1">{task.title}</h5>
-                                        <small className="text-muted">Deadline: {task.deadline}</small>
-                                    </div>
-                                    <div className="d-flex w-100 justify-content-between">
-                                        <h6 className="mb-1">{task.description}</h6>
-                                        <small className="text-muted">Done: {task.isDone ? "Yes" : "No"}</small>
-                                    </div>
-                                </a>
-                            </div>
+                    {tasks.length ? (tasks.map((task) => (
+                            <Accordion expanded={selectedTask === task.id} onChange={selectTask(task.id)} key={task.id}>
+                                <AccordionSummary expandIcon={<ExpandMoreOutlined/>}>
+                                    <Work sx={{width: '5%', color: 'text.secondary'}}/>
+                                    <Typography sx={{width: '70%', flexShrink: 0}}>{task.title}</Typography>
+                                    <Typography sx={{color: 'text.secondary'}}>Deadline: {task.deadline}</Typography>
+                                </AccordionSummary>
+                                <AccordionDetails>
+                                    <Typography sx={{width: '60%', flexShrink: 0}} align={"left"}>
+                                        <Description sx={{width:'10%', color: 'text.secondary'}}/>
+                                        Description:
+                                        <strong>{task.description}</strong>
+                                    </Typography>
+                                    <Typography sx={{width: '60%', flexShrink: 0}} align={"left"}>
+                                        <Done sx={{width:'10%', color: 'text.secondary'}}/>
+                                        Done:
+                                        <Checkbox checked={task.isDone} color="success"
+                                                  onChange={() => setIsDone(task.isDone)}/>
+                                    </Typography>
+                                    {isAdmin && <List>
+                                        {users.map(user => (
+                                            <ListItem key={user.id}>
+                                                <ListItemIcon>
+                                                    <AccountBox/>
+                                                </ListItemIcon>
+                                                <ListItemText>
+                                                    {user.name} {user.lastName}
+                                                </ListItemText>
+                                            </ListItem>
+                                        ))}
+                                    </List>}
+                                </AccordionDetails>
+                                {isAdmin && <AccordionActions>
+                                    <Button variant="outlined" color="success"
+                                            disabled={task.isDone === isDone}>Update</Button>
+                                    <Button variant="outlined" color="error"
+                                            onClick={() => deleteTaskById(task.id)}>Delete</Button>
+                                </AccordionActions>}
+                            </Accordion>
                         )))
                         : (<li className="list-group-item note">
                             <div align="center">

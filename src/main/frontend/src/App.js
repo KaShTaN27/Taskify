@@ -41,6 +41,7 @@ function App() {
                 console.log('Logging out...')
                 handleLogout();
                 navigate("/login");
+                window.location.reload();
             }
         }
     }, [location, navigate])
