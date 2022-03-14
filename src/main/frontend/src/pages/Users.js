@@ -31,8 +31,8 @@ export const Users = () => {
     const organization = getOrganizationName();
     const [tasks, setTasks] = useState([]);
 
-    const [currentEmail, setCurrentEmail] = useState("");
-    const [newEmail, setNewEmail] = useState("");
+    const [currentFirstName, setCurrentFirstName] = useState("");
+    const [newFirstName, setNewFirstName] = useState("");
     const [selectedUser, setSelectedUser] = useState(-1);
 
     const selectUser = (panel) => (event, newUser) => {
@@ -41,7 +41,7 @@ export const Users = () => {
         if (selectedUser !== panel) {
             getTasksOfUser(panel);
             getUserById(panel);
-            setNewEmail(currentEmail);
+            setNewFirstName(currentFirstName);
         }
     }
 
@@ -69,8 +69,8 @@ export const Users = () => {
         }).then(response => {
             console.log('User by id >>', response)
             // TODO: setting currentEmail late
-            setCurrentEmail(response.data.email)
-            console.log("After setting", currentEmail)
+            setCurrentFirstName(response.data.name)
+            console.log("After setting", currentFirstName)
         }).catch(error => {
             console.log('User by id error >>', error)
         })
@@ -87,6 +87,19 @@ export const Users = () => {
             setTasks(response.data)
         }).catch(error => {
             console.log('User by id error >>', error)
+        })
+    }
+
+    const handleUpdateEmail = (id) => {
+        axios.put(`${BASE_URL}/api/user/${id}/?email=${newFirstName}`, null
+            , {
+            headers: {
+                'Authorization': getToken()
+            }
+        }).then(response => {
+            console.log("response update user ", response.data)
+        }).catch(err => {
+            console.log(err)
         })
     }
 
@@ -199,12 +212,12 @@ export const Users = () => {
                         <AccordionDetails>
                             <FormControl variant="standard">
                                 <InputLabel htmlFor="input-with-icon-adornment">
-                                    Email
+                                    First name
                                 </InputLabel>
                                 <Input
-                                    onChange={e => setNewEmail(e.target.value)}
+                                    onChange={e => setNewFirstName(e.target.value)}
                                     // value=
-                                    defaultValue={user.email}
+                                    defaultValue={user.firstName}
                                     id="input-with-icon-adornment"
                                     startAdornment={
                                         <InputAdornment position="start">
@@ -239,7 +252,8 @@ export const Users = () => {
                         </AccordionDetails>
                         <AccordionActions>
                             <Button variant="outlined" color="success"
-                            disabled={(newEmail === user.email) || (newEmail === "")}>Update</Button>
+                            disabled={(newFirstName === user.firstName) || (newFirstName === "")}
+                            /*onClick={() => handleUpdateEmail(user.id)}*/>Update</Button>
                             <Button variant="outlined" color="error"
                                     onClick={() => deleteUserById(user.id)}>Delete</Button>
                         </AccordionActions>
