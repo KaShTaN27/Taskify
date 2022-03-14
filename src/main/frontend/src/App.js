@@ -32,7 +32,6 @@ function App() {
     }, [])
 
 
-
     useEffect(() => {
         console.log('handle route change here ', location)
         if (getToken()) {
@@ -60,13 +59,10 @@ function App() {
 
     return (
         <div>
-
-
             <nav className="navbar navbar-dark navbar-expand bg-primary">
                 <div className={'navbar-brand p-lg-2'}>
                     Taskify application
                 </div>
-
                 <div className="navbar-nav me-auto">
                     {showInterface && (
                         <li className="navbar-item">
@@ -98,20 +94,16 @@ function App() {
                         </li>
                     </div>)}
             </nav>
-
-
             <div>
-
-                    <div className="content pt-4">
-                        <Routes>
-                            <Route exact path="/" element={<Registration />}/>
-                            <Route path="/login" element={<Login />}/>
-                            <Route path="/tasks" element={<Tasks />}/>
-                            <Route path="/users" element={<Users />}/>
-                            <Route path="/profile" element={<Profile />}/>
-                        </Routes>
-                    </div>
-                {/*<AuthVerify />*/}
+                <div className="content pt-4">
+                    <Routes>
+                        <Route path="/login" element={<Login/>}/>
+                        <Route exact path="/" element={<Registration/>}/>
+                        <Route path="/tasks" element={<Tasks/>}/>
+                        <Route path="/users" element={<Users/>}/>
+                        <Route path="/profile" element={<Profile/>}/>
+                    </Routes>
+                </div>
             </div>
         </div>
     );
