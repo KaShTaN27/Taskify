@@ -49,10 +49,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AppUser> updateUserById(@PathVariable Long id,
-                                            @RequestBody UpdateUserForm form) {
-        return ResponseEntity.ok().body(userService.updateUserById(id, form.getFirstName(),
-                                                                   form.getLastName(), form.getEmail()));
+    public ResponseEntity<AppUser> updateUserById(@PathVariable Long id, String email) {
+        return ResponseEntity.ok().body(userService.updateUserById(id, email));
     }
 
     @DeleteMapping("/{id}")

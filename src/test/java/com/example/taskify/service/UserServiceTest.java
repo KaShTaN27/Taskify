@@ -91,7 +91,7 @@ class UserServiceTest {
         when(appUserRepository.findById(1L)).thenReturn(Optional.of(TEST_USER));
         when(appUserRepository.save(updatedUser)).thenReturn(updatedUser);
 
-        AppUser newUser = userService.updateUserById(TEST_USER.getId(), "NewName", "NewLastName", "NewEmail");
+        AppUser newUser = userService.updateUserById(TEST_USER.getId(), "NewEmail");
         assertEquals(TEST_USER.getId(), newUser.getId());
         assertEquals(TEST_USER.getPassword(), newUser.getPassword());
         assertNotEquals("name", newUser.getName());
@@ -104,7 +104,7 @@ class UserServiceTest {
         when(appUserRepository.findById(TEST_USER.getId())).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->
-                userService.updateUserById(TEST_USER.getId(), "NewName", "NewLastName", "NewEmail"));
+                userService.updateUserById(TEST_USER.getId(), "NewEmail"));
     }
 
     @Test

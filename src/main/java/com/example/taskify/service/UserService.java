@@ -57,12 +57,9 @@ public class UserService implements UserDetailsService {
                 new ResourceNotFoundException("There is no user with id = " + id));
     }
 
-    public AppUser updateUserById(Long id, String firstName,
-                                  String lastName, String email) {
+    public AppUser updateUserById(Long id, String email) {
         if (appUserRepository.findByEmail(email).isEmpty()) {
             AppUser user = getUserById(id);
-            user.setName(firstName);
-            user.setLastName(lastName);
             user.setEmail(email);
             log.info("User with id {} updated successfully", id);
             return appUserRepository.save(user);
