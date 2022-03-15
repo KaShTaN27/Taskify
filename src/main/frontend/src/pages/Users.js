@@ -45,6 +45,10 @@ export const Users = () => {
         }
     }
 
+    useEffect(() => {
+        if (selectedUser !== -1)
+            setCurrentFirstName(getUserById(selectedUser));
+    }, [currentFirstName])
 
 
     const deleteUserById = (id) => {
@@ -61,7 +65,8 @@ export const Users = () => {
         })
     }
 
-    const getUserById = (id) => {
+    function getUserById(id) {
+        let result
         axios.get(`${BASE_URL}/api/user/${id}`, {
             headers: {
                 'Authorization': getToken()
@@ -69,12 +74,12 @@ export const Users = () => {
         }).then(response => {
             console.log('User by id >>', response)
             // TODO: setting currentEmail late
-            setCurrentFirstName(response.data.name)
+            result = response.data.name
             console.log("After setting", currentFirstName)
         }).catch(error => {
             console.log('User by id error >>', error)
         })
-
+        return result;
     }
 
     const getTasksOfUser = (id) => {
