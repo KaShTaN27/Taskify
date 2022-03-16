@@ -47,9 +47,8 @@ public class TaskController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Task> updateTaskById(@PathVariable Long id,
-                                               @RequestBody UpdateTaskForm form) {
-        return ResponseEntity.ok().body(taskService.updateTaskById(id, form.getTitle(),
-                                                                   form.getDescription(), form.getDeadline()));
+                                               Boolean isDone) {
+        return ResponseEntity.ok().body(taskService.updateTaskById(id, isDone));
     }
 
     @DeleteMapping("/{id}")

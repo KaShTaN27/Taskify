@@ -57,14 +57,11 @@ public class UserService implements UserDetailsService {
                 new ResourceNotFoundException("There is no user with id = " + id));
     }
 
-    public AppUser updateUserById(Long id, String email) {
-        if (appUserRepository.findByEmail(email).isEmpty()) {
-            AppUser user = getUserById(id);
-            user.setEmail(email);
-            log.info("User with id {} updated successfully", id);
-            return appUserRepository.save(user);
-        } else
-            throw new ResourceAlreadyExistsException("User with email: " + email + " already exists");
+    public AppUser updateUserById(Long id, String password) {
+        AppUser user = getUserById(id);
+        user.setPassword(passwordEncoder.encode(password));
+        log.info("User with id {} updated successfully", id);
+        return appUserRepository.save(user);
     }
 
     public void deleteUserById(Long id) {

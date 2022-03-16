@@ -88,7 +88,7 @@ class TaskServiceTest {
         when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.of(TEST_TASK));
         when(taskRepository.save(task)).thenReturn(task);
 
-        Task newTask = taskService.updateTaskById(TEST_TASK.getId(), task.getTitle(), task.getDescription(), task.getDeadline());
+        Task newTask = taskService.updateTaskById(TEST_TASK.getId(), task.isDone());
         assertEquals(task.getId(), newTask.getId());
         assertNotEquals("title", newTask.getTitle());
         assertNotEquals("description", newTask.getDescription());
@@ -100,7 +100,7 @@ class TaskServiceTest {
         when(taskRepository.findById(TEST_TASK.getId())).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->
-                taskService.updateTaskById(TEST_TASK.getId(), TEST_TASK.getTitle(), TEST_TASK.getDescription(), TEST_TASK.getDeadline()));
+                taskService.updateTaskById(TEST_TASK.getId(), TEST_TASK.isDone()));
     }
 
     @Test

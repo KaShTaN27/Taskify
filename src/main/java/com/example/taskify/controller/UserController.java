@@ -49,8 +49,8 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AppUser> updateUserById(@PathVariable Long id, String email) {
-        return ResponseEntity.ok().body(userService.updateUserById(id, email));
+    public ResponseEntity<AppUser> updateUserById(@PathVariable Long id, String password) {
+        return ResponseEntity.ok().body(userService.updateUserById(id, password));
     }
 
     @DeleteMapping("/{id}")

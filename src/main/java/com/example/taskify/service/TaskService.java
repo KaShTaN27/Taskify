@@ -46,11 +46,9 @@ public class TaskService {
         return optionalTask.orElseThrow(() -> new ResourceNotFoundException("Task with id = " + id + " doesn't exists in database"));
     }
 
-    public Task updateTaskById(Long id, String title, String description, String deadline) {
+    public Task updateTaskById(Long id, Boolean isDone) {
         Task task = getTaskById(id);
-        task.setTitle(title);
-        task.setDescription(description);
-        task.setDeadline(deadline);
+        task.setDone(isDone);
         log.info("Task with id {} successfully updated", id);
         return taskRepository.save(task);
     }
