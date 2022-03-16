@@ -38,15 +38,25 @@ export const Tasks = () => {
     const isAdmin = jwtDecode(getToken()).roles.includes('ROLE_ADMIN');
 
     const [isDone, setIsDone] = useState(false);
+    const [currentIsDone, setCurrentIsDone] = useState(undefined);
     const [users, setUsers] = useState([]);
     const [selectedTask, setSelectedTask] = useState(-1);
     const selectTask = (panel) => (event, newTask) => {
 
         setSelectedTask(newTask ? panel : -1);
         if (selectedTask !== panel) {
+            setIsDone(undefined);
             getUsersOfTask(panel);
+            setIsDone(getTaskById(panel));
+            console.log(isDone, " | ", currentIsDone)
         }
     }
+
+    useEffect(() => {
+        if (selectedTask !== -1)
+            setCurrentIsDone(getTaskById(selectedTask));
+            console.log(currentIsDone)
+    }, [selectedTask])
 
     const deleteTaskById = (id) => {
         const newTasks = tasks.filter(task => task.id !== id);
@@ -63,7 +73,6 @@ export const Tasks = () => {
     }
 
     const getUsersOfTask = (id) => {
-        console.log(id)
         axios.get(`${BASE_URL}/api/task/${id}/users`, {
             headers: {
                 'Authorization': getToken()
@@ -73,6 +82,36 @@ export const Tasks = () => {
             setUsers(response.data)
         }).catch(error => {
             console.log('User by id error >>', error)
+        })
+    }
+
+    function getTaskById (id) {
+        let result;
+        axios.get(`${BASE_URL}/api/task/${id}`, {
+            headers: {
+                'Authorization': getToken()
+            }
+        }).then(response => {
+            result = response.data.done
+            console.log(response.data.done, "| |", result)
+            console.log(response.data)
+        }).catch(error => {
+            console.log(error)
+        })
+        return result
+    }
+
+    const updateTaskById = (id) => {
+        axios.put(`${BASE_URL}/api/task/${id}/?isDone=${isDone}`, null
+            , {
+                headers: {
+                    'Authorization': getToken()
+                }
+            }).then(response => {
+            console.log("response update user ", response.data)
+            window.location.reload();
+        }).catch(err => {
+            console.log(err)
         })
     }
 
@@ -204,8 +243,8 @@ export const Tasks = () => {
                                     <Typography sx={{width: '60%', flexShrink: 0}} align={"left"}>
                                         <Done sx={{width:'10%', color: 'text.secondary'}}/>
                                         Done:
-                                        <Checkbox checked={task.isDone} color="success"
-                                                  onChange={() => setIsDone(task.isDone)}/>
+                                        <Checkbox defaultChecked={task.done} color="success"
+                                                  onChange={(e) => setIsDone(e.target.checked)}/>
                                     </Typography>
                                     {isAdmin && <List>
                                         {users.map(user => (
@@ -222,7 +261,8 @@ export const Tasks = () => {
                                 </AccordionDetails>
                                 {isAdmin && <AccordionActions>
                                     <Button variant="outlined" color="success"
-                                            disabled={task.isDone === isDone}>Update</Button>
+                                            disabled={task.isDone === isDone}
+                                            onClick={() => updateTaskById(task.id)}>Update</Button>
                                     <Button variant="outlined" color="error"
                                             onClick={() => deleteTaskById(task.id)}>Delete</Button>
                                 </AccordionActions>}

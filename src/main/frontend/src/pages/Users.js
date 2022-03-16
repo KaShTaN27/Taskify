@@ -7,18 +7,16 @@ import {
     AccordionActions,
     AccordionDetails,
     AccordionSummary,
+    Box,
     Button,
-    FormControl,
-    Input,
-    InputAdornment,
-    InputLabel,
     List,
     ListItem,
     ListItemIcon,
     ListItemText,
+    TextField,
     Typography
 } from "@mui/material";
-import {AccountBox, Email, ExpandMoreOutlined, Hotel, Work} from "@mui/icons-material";
+import {AccountBox, ExpandMoreOutlined, Hotel, VpnKey, Work} from "@mui/icons-material";
 
 export const Users = () => {
 
@@ -31,25 +29,15 @@ export const Users = () => {
     const organization = getOrganizationName();
     const [tasks, setTasks] = useState([]);
 
-    const [currentFirstName, setCurrentFirstName] = useState("");
-    const [newFirstName, setNewFirstName] = useState("");
+    const [newPassword, setNewPassword] = useState("");
     const [selectedUser, setSelectedUser] = useState(-1);
 
     const selectUser = (panel) => (event, newUser) => {
         setSelectedUser(newUser ? panel : -1);
-        // Проверка на раскрытие accordion'a
         if (selectedUser !== panel) {
             getTasksOfUser(panel);
-            getUserById(panel);
-            setNewFirstName(currentFirstName);
         }
     }
-
-    useEffect(() => {
-        if (selectedUser !== -1)
-            setCurrentFirstName(getUserById(selectedUser));
-    }, [currentFirstName])
-
 
     const deleteUserById = (id) => {
         const newUsers = users.filter(user => user.id !== id);
@@ -65,23 +53,6 @@ export const Users = () => {
         })
     }
 
-    function getUserById(id) {
-        let result
-        axios.get(`${BASE_URL}/api/user/${id}`, {
-            headers: {
-                'Authorization': getToken()
-            }
-        }).then(response => {
-            console.log('User by id >>', response)
-            // TODO: setting currentEmail late
-            result = response.data.name
-            console.log("After setting", currentFirstName)
-        }).catch(error => {
-            console.log('User by id error >>', error)
-        })
-        return result;
-    }
-
     const getTasksOfUser = (id) => {
         axios.get(`${BASE_URL}/api/user/${id}/tasks`, {
             headers: {
@@ -95,14 +66,15 @@ export const Users = () => {
         })
     }
 
-    const handleUpdateEmail = (id) => {
-        axios.put(`${BASE_URL}/api/user/${id}/?email=${newFirstName}`, null
+    const handleUpdatePassword = (id) => {
+        axios.put(`${BASE_URL}/api/user/${id}/?password=${newPassword}`, null
             , {
             headers: {
                 'Authorization': getToken()
             }
         }).then(response => {
             console.log("response update user ", response.data)
+            window.location.reload();
         }).catch(err => {
             console.log(err)
         })
@@ -215,22 +187,11 @@ export const Users = () => {
                             <Typography sx={{color: 'text.secondary'}}>Email: {user.email}</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                            <FormControl variant="standard">
-                                <InputLabel htmlFor="input-with-icon-adornment">
-                                    First name
-                                </InputLabel>
-                                <Input
-                                    onChange={e => setNewFirstName(e.target.value)}
-                                    // value=
-                                    defaultValue={user.firstName}
-                                    id="input-with-icon-adornment"
-                                    startAdornment={
-                                        <InputAdornment position="start">
-                                            <Email />
-                                        </InputAdornment>
-                                    }
-                                />
-                            </FormControl>
+                            <Box sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                                <VpnKey sx={{ color: 'action.active', mr: 1, my: 0.5 }} />
+                                <TextField label="New password" variant="standard"
+                                           onChange={e => setNewPassword(e.target.value)}/>
+                            </Box>
                             <List>
                                 {tasks.length ? (tasks.map(task => (
                                         <ListItem key={task.id}>
@@ -257,8 +218,8 @@ export const Users = () => {
                         </AccordionDetails>
                         <AccordionActions>
                             <Button variant="outlined" color="success"
-                            disabled={(newFirstName === user.firstName) || (newFirstName === "")}
-                            /*onClick={() => handleUpdateEmail(user.id)}*/>Update</Button>
+                            disabled={newPassword === ""}
+                            onClick={() => handleUpdatePassword(user.id)}>Update</Button>
                             <Button variant="outlined" color="error"
                                     onClick={() => deleteUserById(user.id)}>Delete</Button>
                         </AccordionActions>
