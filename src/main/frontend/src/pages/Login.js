@@ -36,7 +36,7 @@ export const Login = () => {
 
             getUserInfo()
         }).catch(error => {
-            console.log('error >>> ', error)
+            setError(error.response.data)
         })
 
     }
