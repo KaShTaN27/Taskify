@@ -1,7 +1,6 @@
 package com.example.taskify.controller;
 
 import com.example.taskify.controller.form.CreateNewUserForm;
-import com.example.taskify.controller.form.UpdateUserForm;
 import com.example.taskify.controller.form.UserForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
