@@ -6,6 +6,7 @@ import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Role;
 import com.example.taskify.exception.ResourceAlreadyExistsException;
 import com.example.taskify.exception.ResourceNotFoundException;
+import com.example.taskify.mapper.UserMapper;
 import com.example.taskify.repository.AppUserRepository;
 import com.example.taskify.repository.OrganizationRepository;
 import com.example.taskify.repository.RoleRepository;
@@ -76,8 +77,7 @@ public class UserService implements UserDetailsService {
     }
 
     public AppUser createUser(CreateNewUserForm form) {
-        AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
-        user.setOrganizationName(form.getOrganization());
+        AppUser user = UserMapper.mapUserFromCreateNewUserForm(form);
         user.getRoles().add(getRoleByName("ROLE_USER"));
         return saveUser(user);
     }
@@ -86,8 +86,7 @@ public class UserService implements UserDetailsService {
         String orgName = getUserByEmail(email).getOrganizationName();
         List<UserForm> users = new ArrayList<>();
         appUserRepository.findAllByOrganizationName(orgName).forEach(
-                user -> users.add(
-                        new UserForm(user.getId(), user.getName(), user.getLastName(), user.getEmail())));
+                user -> users.add(UserMapper.mapUserToUserForm(user)));
         log.info("Fetching all users from {}", orgName);
         return users;
     }

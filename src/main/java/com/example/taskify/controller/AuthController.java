@@ -3,14 +3,13 @@ package com.example.taskify.controller;
 import com.example.taskify.controller.form.LoginForm;
 import com.example.taskify.controller.form.RegistrateOrganizationForm;
 import com.example.taskify.domain.AppUser;
-import com.example.taskify.domain.Organization;
-import com.example.taskify.token.JwtTokenProvider;
+import com.example.taskify.mapper.OrganizationMapper;
+import com.example.taskify.mapper.UserMapper;
 import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +33,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginForm form) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(form.getEmail(), form.getPassword()));
+            authenticationManager.authenticate(UserMapper.mapPassAuthTokenFromLoginForm(form));
             AppUser user = userService.getUserByEmail(form.getEmail());
             String token = tokenProvider.generateToken(form.getEmail(), user.getRoles());
             Map<Object, Object> response = new HashMap<>();
