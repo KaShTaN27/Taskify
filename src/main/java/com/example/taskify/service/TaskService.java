@@ -6,6 +6,8 @@ import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
 import com.example.taskify.exception.ResourceAlreadyExistsException;
 import com.example.taskify.exception.ResourceNotFoundException;
+import com.example.taskify.mapper.EmailMapper;
+import com.example.taskify.mapper.TaskMapper;
 import com.example.taskify.repository.TaskRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +76,7 @@ public class TaskService {
     public void createTaskAndSendEmail(AssignTaskForm form) {
         saveTask(new Task(form.getTitle(), form.getDescription(), form.getDeadline(), form.getIsDone()));
         addTaskToUsers(form.getEmails(), form.getTitle());
-        form.getEmails().forEach(email -> senderService.sendSimpleEmail(email, form.getTitle(), form.getDescription(), form.getDeadline()));
+        form.getEmails().forEach(email ->
+                senderService.sendSimpleEmail(EmailMapper.mapEmailFormFromAssignTaskForm(email, form)));
     }
 }
