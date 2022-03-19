@@ -7,6 +7,7 @@ import com.example.taskify.mapper.OrganizationMapper;
 import com.example.taskify.mapper.UserMapper;
 import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.UserService;
+import com.example.taskify.token.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -47,11 +48,8 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registrateNewOrganization(@RequestBody RegistrateOrganizationForm form) {
-        Organization organization = new Organization(form.getName(), form.getPhoneNumber(), form.getAddress());
-        organizationService.saveOrganization(organization);
-        AppUser user = new AppUser(form.getFirstName(), form.getLastName(), form.getEmail(), form.getPassword());
-        user.setOrganizationName(organization.getName());
-        userService.saveUser(user);
+        organizationService.saveOrganization(OrganizationMapper.mapOrgFromRegistrateOrganizationForm(form));
+        userService.saveUser(UserMapper.mapUserFromRegistrateOrganizationForm(form));
         organizationService.addAdminToOrganization(form.getName(), form.getEmail());
         return ResponseEntity.ok("New organization registered!");
     }
