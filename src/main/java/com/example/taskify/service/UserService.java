@@ -23,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -37,7 +36,7 @@ public class UserService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     public AppUser saveUser(AppUser user) {
-        if (appUserRepository.findByEmail(user.getEmail()).isEmpty()) {
+        if (!appUserRepository.existsByEmail(user.getEmail())) {
             log.info("Saving new user with email {}", user.getEmail());
             user.setPassword(passwordEncoder.encode(user.getPassword()));
             return appUserRepository.save(user);
@@ -65,9 +64,9 @@ public class UserService implements UserDetailsService {
     }
 
     public void deleteUserById(Long id) {
-        Optional<AppUser> user = appUserRepository.findById(id);
-        if (user.isPresent()) {
-            organizationRepository.findByName(user.get().getOrganizationName()).get().getAppUsers().remove(user.get());
+        if (appUserRepository.existsById(id)) {
+            AppUser user = getUserById(id);
+            organizationRepository.findByName(user.getOrganizationName()).get().getAppUsers().remove(user);
             log.info("User with id {} deleted successfully", id);
             appUserRepository.deleteById(id);
         } else {
@@ -94,7 +93,7 @@ public class UserService implements UserDetailsService {
     }
 
     public Role saveRole(Role role) {
-        if (roleRepository.findByName(role.getName()).isEmpty()) {
+        if (!roleRepository.existsByName(role.getName())) {
             log.info("Fetching role with name {}", role.getName());
             return roleRepository.save(role);
         } else {

@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
@@ -27,7 +26,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
 
     public Task saveTask(Task task) {
-        if (taskRepository.findByTitle(task.getTitle()).isEmpty()) {
+        if (!taskRepository.existsByTitle(task.getTitle())) {
             log.info("Saving new task {} to the database", task.getTitle());
             return taskRepository.save(task);
         } else {
@@ -42,8 +41,8 @@ public class TaskService {
     }
 
     public Task getTaskById(Long id) {
-        Optional<Task> optionalTask = taskRepository.findById(id);
-        return optionalTask.orElseThrow(() -> new ResourceNotFoundException("Task with id = " + id + " doesn't exists in database"));
+        return taskRepository.findById(id).orElseThrow(() ->
+                new ResourceNotFoundException("Task with id = " + id + " doesn't exists in database"));
     }
 
     public Task updateTaskById(Long id, Boolean isDone) {
@@ -54,7 +53,7 @@ public class TaskService {
     }
 
     public void deleteTaskById(Long id) {
-        if (taskRepository.findById(id).isPresent()) {
+        if (taskRepository.existsById(id)) {
             log.info("Task with id {} deleted successfully", id);
             taskRepository.deleteById(id);
         } else {

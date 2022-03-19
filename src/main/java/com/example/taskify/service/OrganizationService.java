@@ -27,7 +27,7 @@ public class OrganizationService {
     private final OrganizationRepository organizationRepository;
 
     public Organization saveOrganization(Organization organization) {
-        if (organizationRepository.findByName(organization.getName()).isEmpty()) {
+        if (!organizationRepository.existsByName(organization.getName())) {
             log.info("Saving new organization {} to the database", organization.getName());
             return organizationRepository.save(organization);
         } else {
@@ -57,7 +57,7 @@ public class OrganizationService {
     }
 
     public void deleteOrganization(Long id) {
-        if (organizationRepository.findById(id).isPresent()) {
+        if (organizationRepository.existsById(id)) {
             log.info("Organization with id {} deleted successfully", id);
             organizationRepository.deleteById(id);
         } else {
