@@ -74,7 +74,7 @@ public class TaskService {
     }
 
     public void createTaskAndSendEmail(AssignTaskForm form) {
-        saveTask(new Task(form.getTitle(), form.getDescription(), form.getDeadline(), form.getIsDone()));
+        saveTask(TaskMapper.mapTaskFromAssignTaskForm(form));
         addTaskToUsers(form.getEmails(), form.getTitle());
         form.getEmails().forEach(email ->
                 senderService.sendSimpleEmail(EmailMapper.mapEmailFormFromAssignTaskForm(email, form)));
