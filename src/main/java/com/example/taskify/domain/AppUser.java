@@ -34,12 +34,11 @@ public class AppUser {
     private Collection<Task> tasks = new ArrayList<>();
     private String organizationName;
 
-    public AppUser(String name, String lastName, String email, String password) {
+    public AppUser(String name, String lastName, String email, String password, String organizationName) {
         this.name = name;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
-        this.roles = new ArrayList<>();
-        this.tasks = new ArrayList<>();
+        this.organizationName = organizationName;
     }
 }
