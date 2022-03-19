@@ -4,7 +4,7 @@ import com.example.taskify.controller.form.LoginForm;
 import com.example.taskify.controller.form.RegistrateOrganizationForm;
 import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Organization;
-import com.example.taskify.security.JwtTokenProvider;
+import com.example.taskify.token.JwtTokenProvider;
 import com.example.taskify.service.OrganizationService;
 import com.example.taskify.service.UserService;
 import lombok.RequiredArgsConstructor;

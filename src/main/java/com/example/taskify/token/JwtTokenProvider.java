@@ -1,4 +1,4 @@
-package com.example.taskify.security;
+package com.example.taskify.token;
 
 import com.example.taskify.domain.Role;
 import com.example.taskify.exception.InvalidTokenException;

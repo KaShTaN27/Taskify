@@ -1,5 +1,6 @@
-package com.example.taskify.security;
+package com.example.taskify.config;
 
+import com.example.taskify.token.JwtConfigurer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
