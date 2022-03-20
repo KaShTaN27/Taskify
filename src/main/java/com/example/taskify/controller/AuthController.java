@@ -17,8 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.Map;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 
 @RestController
@@ -37,10 +35,7 @@ public class AuthController {
             authenticationManager.authenticate(UserMapper.mapPassAuthTokenFromLoginForm(form));
             AppUser user = userService.getUserByEmail(form.getEmail());
             String token = tokenProvider.generateToken(form.getEmail(), user.getRoles());
-            Map<Object, Object> response = new HashMap<>();
-            response.put("email", form.getEmail());
-            response.put("token", token);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(UserMapper.mapEmailAndTokenToHashMap(user.getEmail(), token));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(FORBIDDEN).body("Invalid password or email.");
         }

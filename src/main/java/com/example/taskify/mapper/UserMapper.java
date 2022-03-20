@@ -7,6 +7,8 @@ import com.example.taskify.controller.form.UserForm;
 import com.example.taskify.domain.AppUser;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
+import java.util.HashMap;
+
 public class UserMapper {
     public static AppUser mapUserFromCreateNewUserForm(CreateNewUserForm form) {
         return new AppUser(form.getFirstName(),
@@ -34,5 +36,12 @@ public class UserMapper {
     public static UsernamePasswordAuthenticationToken mapPassAuthTokenFromLoginForm(LoginForm form) {
         return new UsernamePasswordAuthenticationToken(form.getEmail(),
                                                        form.getPassword());
+    }
+
+    public static HashMap<Object, Object> mapEmailAndTokenToHashMap(String email, String token) {
+        HashMap<Object, Object> result = new HashMap<>();
+        result.put("email", email);
+        result.put("token", token);
+        return result;
     }
 }
