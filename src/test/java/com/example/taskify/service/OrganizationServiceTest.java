@@ -26,6 +26,8 @@ class OrganizationServiceTest {
     private OrganizationRepository orgRepo;
     @Mock
     private AppUserRepository appUserRepository;
+    @Mock
+    private UserService userService;
 
     @InjectMocks
     private OrganizationService orgService;
@@ -111,7 +113,7 @@ class OrganizationServiceTest {
         AppUser user = new AppUser(1L, "name", "lastName", "email", "password", null, Arrays.asList(task1, task2), TEST_ORGANIZATION.getName());
         TEST_ORGANIZATION.setAppUsers(List.of(user));
 
-        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        when(userService.getUserByEmail(user.getEmail())).thenReturn(user);
         when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
         Collection<Task> tasks = orgService.getOrganizationTasks(user.getEmail());
         assertEquals(testTasks, tasks);
@@ -123,7 +125,6 @@ class OrganizationServiceTest {
         TEST_ORGANIZATION.setAppUsers(new ArrayList<>());
 
         when(orgRepo.findByName(TEST_ORGANIZATION.getName())).thenReturn(Optional.of(TEST_ORGANIZATION));
-        when(appUserRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
         orgService.addUserToOrganization(TEST_ORGANIZATION.getName(), user.getEmail());
         assertNotEquals(null, TEST_ORGANIZATION.getAppUsers());
     }

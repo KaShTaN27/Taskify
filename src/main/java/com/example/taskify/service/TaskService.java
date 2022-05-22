@@ -1,7 +1,6 @@
 package com.example.taskify.service;
 
 import com.example.taskify.controller.form.AssignTaskForm;
-import com.example.taskify.domain.AppUser;
 import com.example.taskify.domain.Task;
 import com.example.taskify.email.EmailSenderService;
 import com.example.taskify.exception.ResourceAlreadyExistsException;
@@ -66,11 +65,8 @@ public class TaskService {
 
     public void addTaskToUsers(List<String> emails, String title) {
         Task task = getTaskByTitle(title);
-        emails.forEach(email -> {
-            AppUser user = userService.getUserByEmail(email);
-            if (user != null)
-                user.getTasks().add(task);
-        });
+        emails.forEach(email ->
+                userService.getUserByEmail(email).getTasks().add(task));
     }
 
     public void createTaskAndSendEmail(AssignTaskForm form) {

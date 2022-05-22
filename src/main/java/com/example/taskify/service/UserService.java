@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -84,11 +83,10 @@ public class UserService implements UserDetailsService {
 
     public List<UserForm> getUsersOfOrganization(String email) {
         String orgName = getUserByEmail(email).getOrganizationName();
-        List<UserForm> users = new ArrayList<>();
-        appUserRepository.findAllByOrganizationName(orgName).forEach(
-                user -> users.add(UserMapper.mapUserToUserForm(user)));
         log.info("Fetching all users from {}", orgName);
-        return users;
+        return appUserRepository.findAllByOrganizationName(orgName).stream()
+                .map(UserMapper::mapUserToUserForm)
+                .toList();
     }
 
     public Role saveRole(Role role) {
@@ -112,9 +110,8 @@ public class UserService implements UserDetailsService {
     }
 
     public boolean isAdmin(String email) {
-        List<String> roles = new ArrayList<>();
-        getUserByEmail(email).getRoles().forEach(role -> roles.add(role.getName()));
-        return roles.contains("ROLE_ADMIN");
+        return getUserByEmail(email).getRoles().stream()
+                .anyMatch(role -> "ROLE_ADMIN".equals(role.getName()));
     }
 
     @Override
@@ -125,8 +122,9 @@ public class UserService implements UserDetailsService {
             throw new UsernameNotFoundException("User with email " + email + " not found");
         } else {
             log.info("User with email {} found in database", email);
-            Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
-            user.getRoles().forEach(role -> authorities.add(new SimpleGrantedAuthority(role.getName())));
+            Collection<SimpleGrantedAuthority> authorities = user.getRoles().stream()
+                    .map(role -> new SimpleGrantedAuthority(role.getName()))
+                    .toList();
             return new User(user.getEmail(), user.getPassword(), authorities);
         }
     }
